@@ -1,0 +1,84 @@
+{
+    "folder-color.pathColors": [
+        {
+            "folderPath": "Photobox\\node_modules\\",
+            "color": "foldercolorizer.color_999999",
+            "badge": "NE"
+        },
+        {
+            "folderPath": "Photobox\\__pycache__\\",
+            "color": "foldercolorizer.color_999999",
+            "badge": "NE"
+        },
+        {
+            "folderPath": "Photobox\\.vscode\\",
+            "badge": "NE"
+        },
+        {
+            "folderPath": "Photobox\\logs\\",
+            "badge": "AL",
+            "color": "foldercolorizer.color_ff0000"
+        },
+        {
+            "folderPath": "Photobox\\templates\\",
+            "badge": "AP"
+        },
+        {
+            "folderPath": "Photobox\\routes\\",
+            "badge": "AP"
+        },
+        {
+            "folderPath": "Photobox\\static\\",
+            "badge": "AP"
+        },
+        {
+            "folderPath": "Photobox\\app.py\\",
+            "badge": "AP",
+            "color": "foldercolorizer.color_ffccff"
+        }
+    ],
+    "folder-customization.folders": [
+        {
+            "path": "Photobox\\.vscode\\",
+            "color": "foldercustomization.AnsiColor91"
+        },
+        {
+            "path": "Photobox\\.venv\\",
+            "color": "foldercustomization.AnsiColor91",
+            "badge": "NE"
+        },
+        {
+            "path": "Photobox\\__pycache__\\",
+            "color": "foldercustomization.AnsiColor90"
+        },
+        {
+            "path": "Photobox\\node_modules\\",
+            "color": "__blocked__"
+        },
+        {
+            "path": "Photobox\\static\\",
+            "color": "foldercustomization.AnsiColor92"
+        },
+        {
+            "path": "Photobox\\templates\\",
+            "color": "foldercustomization.AnsiColor46"
+        },
+        {
+            "path": "Photobox\\utils\\",
+            "color": "foldercustomization.AnsiColor14"
+        },
+        {
+            "path": "Photobox\\routes\\",
+            "color": "foldercustomization.AnsiColor14"
+        },
+        {
+            "path": "Photobox\\forms\\",
+            "color": "foldercustomization.AnsiColor14",
+            "badge": "AP"
+        },
+        {
+            "path": "Photobox\\tests\\",
+            "color": "foldercustomization.AnsiColor220"
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "photobox",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^4.1.5"
+  },
+  "description": "",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.5"
+  }
+}

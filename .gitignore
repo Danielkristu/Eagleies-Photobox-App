@@ -1,0 +1,4 @@
+.env
+firebase_key.json
+logs/
+__pycache__/
