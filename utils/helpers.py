@@ -1,31 +1,68 @@
-import base64
-import logging
-import requests
-import requests
+# utils/helpers.py
 import os
-import uuid
+import base64
+import requests
+import logging
+
+from flask import session
 from google.cloud import firestore
-from getmac import get_mac_address
+from getmac import get_mac_address # ✅ RESTORED: Import for the MAC address function
 
-# Firestore client (can be reused across app)
-db_fs = firestore.Client()
+# --- Firestore Client Initialization ---
+# Initialize the client once here to be shared across the application
+try:
+    db_fs = firestore.Client()
+except Exception as e:
+    logging.error(f"Failed to initialize Firestore client in helpers: {e}")
+    db_fs = None
 
+# --- Session-Based Helper with Logging ---
+def get_booth_config():
+    """
+    Securely fetches the configuration for the currently logged-in booth.
+    It fetches the main booth document and merges it with data from the
+    'settings' subcollection.
+    """
+    if 'client_id' not in session or 'booth_id' not in session:
+        logging.warning("GET_CONFIG: Attempted to get config without a valid session.")
+        return None
+    
+    try:
+        client_id = session['client_id']
+        booth_id = session['booth_id']
+        logging.info(f"GET_CONFIG: Attempting to fetch config for ClientID: {client_id}, BoothID: {booth_id}")
+        
+        # 1. Fetch the main booth document
+        booth_doc_ref = db_fs.collection('Clients').document(client_id).collection('Booths').document(booth_id)
+        booth_doc = booth_doc_ref.get()
 
-def get_device_mac():
-    return get_mac_address() or "unknown_mac"
+        if not booth_doc.exists:
+            logging.warning(f"❌ GET_CONFIG: Main booth document not found for BoothID: {booth_id}")
+            return None
+        
+        booth_data = booth_doc.to_dict()
+        logging.info(f"✅ GET_CONFIG: Found main booth document.")
 
+        # 2. Fetch the settings from the subcollection
+        settings_collection_ref = booth_doc_ref.collection('settings')
+        # We assume settings are in the first document of the subcollection
+        settings_docs = list(settings_collection_ref.limit(1).stream())
 
+        if settings_docs:
+            settings_data = settings_docs[0].to_dict()
+            logging.info(f"✅ GET_CONFIG: Found settings document in subcollection.")
+            # 3. Merge the dictionaries, giving preference to keys in settings_data
+            booth_data.update(settings_data)
+        else:
+            logging.warning(f"⚠️ GET_CONFIG: No settings document found in the 'settings' subcollection for BoothID: {booth_id}. API keys might be missing.")
 
-def load_config(session):
-    activation_id = session.get("activation_id") or session.get("booth_id")
-    if not activation_id:
-        return {}
-    doc = db_fs.collection("Photobox").document(activation_id).get()
-    return doc.to_dict() if doc.exists else {}
+        return booth_data
 
-def load_price(session):
-    return load_config(session).get("price", 10000)
+    except Exception as e:
+        logging.error(f"❌ GET_CONFIG: An exception occurred: {e}")
+        return None
 
+# --- Xendit API Helper with Detailed Logging ---
 class XenditAuth(requests.auth.AuthBase):
     def __init__(self, api_key):
         self.api_key = api_key
@@ -35,33 +72,88 @@ class XenditAuth(requests.auth.AuthBase):
         return r
 
 def get_xendit_client(config):
+    """
+    Creates a requests session with the correct Xendit API key from the config.
+    """
+    if not config:
+        logging.error("❌ XENDIT_CLIENT: Received no config to create client.")
+        return None
+        
+    # ✅ CHANGED: Look for the API key directly in the merged config dictionary.
+    logging.info(f"XENDIT_CLIENT: Received config. Looking for 'xendit_api_key'.")
+    api_key = config.get('xendit_api_key')
+    
+    if not api_key:
+        logging.error("❌ XENDIT_CLIENT: The 'xendit_api_key' is missing from the configuration.")
+        return None
+
+    # For security, we log only a portion of the key
+    masked_key = f"{api_key[:5]}...{api_key[-4:]}" if len(api_key) > 9 else api_key
+    logging.info(f"✅ XENDIT_CLIENT: Successfully extracted API key: {masked_key}")
+
     session_req = requests.Session()
     session_req.headers.update({'Content-Type': 'application/json'})
-    session_req.auth = XenditAuth(config.get("xendit_api_key", ""))
+    session_req.auth = XenditAuth(api_key)
     return session_req
 
-def get_or_set_device_id():
-    from flask import session
-    if "device_id" not in session:
-        session["device_id"] = str(uuid.uuid4())
-    return session["device_id"]
+# --- Webhook Helper ---
+
+def get_config_for_webhook(booth_id):
+    """
+    Fetches a booth's configuration using only the booth_id.
+    This is intended for stateless calls like webhooks.
+    """
+    if not booth_id or not db_fs:
+        return None
+    
+    # This query iterates through all clients to find the booth.
+    client_docs = db_fs.collection('Clients').stream()
+    for client in client_docs:
+        doc_ref = client.reference.collection('Booths').document(booth_id)
+        doc = doc_ref.get()
+        if doc.exists:
+            logging.info(f"Webhook found config for booth {booth_id} under client {client.id}")
+            return doc.to_dict()
+            
+    logging.warning(f"Webhook could not find any config for booth_id: {booth_id}")
+    return None
+
+# --- Xendit API Helper ---
+# Using the class-based auth from your old code for a clean implementation.
+
+
+# --- Telegram Helper ---
 
 def send_telegram_notification(message: str):
+    """Sends a notification message to a pre-configured Telegram chat."""
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     if not bot_token or not chat_id:
-        print("🚫 Telegram token/chat_id belum diatur!")
+        logging.warning("Telegram token/chat_id is not configured in .env file.")
         return
 
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": message
-    }
+    payload = {"chat_id": chat_id, "text": message}
 
     try:
         response = requests.post(url, data=payload)
         response.raise_for_status()
-        print("✅ Notifikasi Telegram berhasil dikirim!")
+        logging.info("Telegram notification sent successfully!")
     except Exception as e:
-        print("❌ Gagal kirim Telegram:", e)
+        logging.error(f"Failed to send Telegram notification: {e}")
+
+def load_config(session):
+    activation_id = session.get("activation_id") or session.get("booth_id")
+
+    if not activation_id:
+        return {}
+
+    doc = db_fs.collection("Clients").document(activation_id).get()
+
+    return doc.to_dict() if doc.exists else {}
+
+
+
+def get_device_mac():
+    """Gets the primary MAC address of the device."""
+    return get_mac_address() or "unknown_mac"

@@ -6,35 +6,34 @@
   <title>PhotoBox - Home</title>
   <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
 </head>
-<body class="bg-gray-100 h-screen flex items-center justify-center p-6  ">
+<body class="bg-gray-100 h-screen flex items-center justify-center p-6">
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6  h-1/2 w-1/2">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto w-full max-w-4xl">
     
     <!-- Card 1: Invoice Payment -->
-    <div onclick="startPayment()" class="bg-white p-8 rounded-xl justify-center text-center h-full flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
+    <div onclick="startPayment()" class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
       <img src="https://cdn-icons-png.flaticon.com/512/992/992700.png" alt="Invoice Icon" class="w-24 mx-auto mb-8">
-      <h2 class="text-4xl font-bold text-indigo-600 mb-2">Bayar </h2>
+      <h2 class="text-4xl font-bold text-indigo-600 mb-2">Bayar</h2>
     </div>
 
     <!-- Card 2: Direct QRIS -->
-    <div onclick="goToQris()" class="bg-white p-8 rounded-xl justify-center text-center h-full flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
+    <div onclick="goToQris()" class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
       <img src="https://cdn-icons-png.flaticon.com/512/1034/1034555.png" alt="QRIS Icon" class="w-24 mx-auto mb-8">
       <h2 class="text-4xl font-bold text-green-600 mb-2">Bayar via QRIS</h2>
     </div>
 
     <!-- Card Voucher -->
-<div onclick="window.location.href='{{ url_for('voucher.voucher_input', doc_id=doc_id) }}'"
-     class="cursor-pointer bg-white shadow-xl rounded-xl p-8 text-center hover:shadow-2xl transition">
-  <img src="{{ url_for('static', filename='img/voucher-icon.png') }}" class="w-16 mx-auto mb-4" alt="Voucher">
-  <h2 class="text-xl font-semibold text-indigo-600">Pakai Voucher</h2>
-</div>
-
+    <div onclick="window.location.href='{{ url_for('voucher.voucher_input', doc_id=doc_id) }}'"
+         class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
+      <img src="{{ url_for('static', filename='img/voucher-icon.png') }}" class="w-24 mx-auto mb-8" alt="Voucher">
+      <h2 class="text-4xl font-bold text-purple-600 mb-2">Pakai Voucher</h2>
+    </div>
 
   </div>
 
   <!-- Modal -->
   <div id="paymentModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50 rounded-2xl transition duration-700 ease-in-out">
-    <div class="bg-white  p-6 shadow-lg w-full max-w-2xl relative rounded-lg">
+    <div class="bg-white p-6 shadow-lg w-full max-w-2xl relative rounded-lg">
       <button onclick="closeModal()" class="absolute top-2 right-4 text-gray-400 hover:text-red-600 text-2xl">&times;</button>
       <h2 class="text-2xl font-semibold text-center text-indigo-600 mb-4">Pembayaran</h2>
       <iframe id="paymentFrame" class="w-full h-[600px] rounded-lg" frameborder="0"></iframe>
@@ -43,12 +42,12 @@
 
   <!-- JS -->
   <script>
-    const docId = "{{ doc_id }}";
     let invoiceId = null;
     let statusChecker = null;
 
     function startPayment() {
-      fetch(`/${docId}/start_payment_invoice`, { method: "POST" })
+      // ✅ CORRECT: URL now points to the blueprint route without doc_id
+      fetch(`{{ url_for('payment.start_payment_invoice') }}`, { method: "POST" })
         .then(res => res.json())
         .then(data => {
           if (data.invoice_url && data.invoice_id) {
@@ -66,15 +65,17 @@
 
     function checkInvoiceStatus() {
       if (!invoiceId) return;
-      fetch(`/${docId}/check_invoice_status/${invoiceId}`)
+      // ✅ CORRECT: URL is now constructed correctly
+      fetch(`{{ url_for('payment.check_invoice_status', invoice_id='INVOICE_ID_PLACEHOLDER') }}`.replace('INVOICE_ID_PLACEHOLDER', invoiceId))
         .then(res => res.json())
         .then(data => {
           if (data.status === "PAID") {
             clearInterval(statusChecker);
-            window.location.href = `/${docId}/payment_status`;
+            // ✅ CORRECT: Redirects to the correct status page
+            window.location.href = `{{ url_for('payment.payment_status') }}`;
           } else if (["EXPIRED", "FAILED"].includes(data.status)) {
             clearInterval(statusChecker);
-            window.location.href = `/${docId}/payment_failed`;
+            window.location.href = `{{ url_for('payment.payment_failed') }}`;
           }
         });
     }
@@ -86,7 +87,8 @@
     }
 
     function goToQris() {
-      window.location.href = `/${docId}/payment_qris`;
+      // ✅ CORRECT: URL now points to the correct blueprint route
+      window.location.href = `{{ url_for('payment.payment_qris') }}`;
     }
   </script>
 </body>

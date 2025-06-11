@@ -1,175 +1,185 @@
+# app.py
 import os
 import threading
 import time
-import uuid
-import base64
-import requests
-import logging
 import webview
 
-from flask import Flask, render_template, redirect, request, jsonify, session, flash
+from flask import (
+    Flask, render_template, redirect, request, session, flash, url_for, Blueprint
+)
 from flask_cors import CORS
 from google.cloud import firestore
-from google.cloud.firestore_v1 import FieldFilter
 from datetime import timedelta
 from dotenv import load_dotenv
-
-from forms.forms import LoginForm, ActivationForm, ManageUserForm
 from routes import register_routes
-import tkinter as tk
 
+from routes.auth import auth_bp
+from routes.activate import activate_bp
+from routes.dashboard import dashboard_bp
+from routes.client import client_bp
+from routes.payment import payment_bp
+from routes.voucher import voucher_bp
+# --- Initialization ---
 
-# Load environment variables
+# Load environment variables from a .env file
 load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "your-secret-key-1234")
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = True  # Set True if HTTPS
+# It's crucial to set a strong, secret key for session security
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "a-very-secret-key-that-is-long-and-random")
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevents client-side script access to the cookie
+app.config['SESSION_COOKIE_SECURE'] = False    # Set to True if your app is served over HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.permanent_session_lifetime = timedelta(minutes=15)
+# Set session to last for a week, suitable for a photobooth environment
+app.permanent_session_lifetime = timedelta(days=7) 
 CORS(app)
-
-# Webview global state
-webview_window = None
-photobooth_session_state = "running"
-
-# Firestore setup
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "firebase_key.json")
-db_fs = firestore.Client()
-
-# Logging setup
-if not os.path.exists('logs'):
-    os.mkdir('logs')
-
-logging.basicConfig(
-    filename='logs/app.log',
-    level=logging.DEBUG if app.debug else logging.WARNING,
-    format='%(asctime)s [%(levelname)s] in %(module)s: %(message)s'
-)
-
-# Register blueprints
-register_routes(app)
+app.register_blueprint(payment_bp)
+app.register_blueprint(client_bp)
+# --- Firestore Setup ---
+# This uses Application Default Credentials.
+# Ensure the GOOGLE_APPLICATION_CREDENTIALS environment variable is set in your .env file
+# and points to your serviceAccountKey.json file.
+# Example .env file line:
+# GOOGLE_APPLICATION_CREDENTIALS="path/to/your/serviceAccountKey.json"
+try:
+    db_fs = firestore.Client()
+    print("Successfully connected to Firestore.")
+except Exception as e:
+    print(f"Error connecting to Firestore: {e}")
+    db_fs = None
 
 
-# Helper to load config
+# --- Authentication Blueprint ---
+# Organizes login-related routes into a logical group named 'auth'
+auth_bp = Blueprint('auth', __name__)
 
-def load_config():
-    activation_id = session.get("activation_id") or session.get("booth_id")
-    if not activation_id:
-        return {}
-    doc = db_fs.collection("Photobox").document(activation_id).get()
-    return doc.to_dict() if doc.exists else {}
+@auth_bp.route("/sign")
+def sign():
+    """Renders the login page ('signin.html'). If a session already exists,
+    it redirects directly to the main booth page."""
+    if 'booth_id' in session:
+        return redirect(url_for('home'))
+    return render_template("signin.html")
 
-def load_price():
-    return load_config().get("price", 10000)
+@auth_bp.route("/login", methods=["POST"])
+def login():
+    """Handles the login form submission from the /sign page."""
+    if not db_fs:
+        flash("Database connection is not available.", "error")
+        return redirect(url_for('auth.sign'))
 
-# Root route
-from utils.helpers import get_device_mac
-
-@app.route('/api/voucher')
-def get_vouchers():
-    return jsonify([
-        {"id": "v1", "name": "Voucher Hemat", "price": 25000},
-        {"id": "v2", "name": "Voucher Premium", "price": 50000},
-    ])
-
-@app.route("/")
-def empty_home():
-    activation_id = session.get("activation_id")
-    print(f"[/] Session activation_id: {activation_id}")
-
-    if not activation_id:
-        print("[/] Tidak ada activation_id di session")
-        return redirect("/activate")
+    booth_code = request.form.get("boothCode")
+    if not booth_code:
+        flash("Booth Code is required.", "error")
+        return redirect(url_for('auth.sign'))
 
     try:
-        app_state_doc = db_fs.collection("app_state").document(activation_id).get()
-        if not app_state_doc.exists:
-            print(f"[/] app_state doc {activation_id} tidak ditemukan")
-            return redirect("/activate")
+        # This is an efficient 'collection group' query. It searches across all
+        # 'Booths' subcollections in your database for a document with the matching code.
+        booths_ref = db_fs.collection_group('Booths').where('boothCode', '==', booth_code).limit(1)
+        docs = list(booths_ref.stream())
 
-        app_state = app_state_doc.to_dict()
-        print(f"[/] app_state: {app_state}")
+        if docs:
+            booth_doc = docs[0]
+            booth_id = booth_doc.id
+            # The client ID is the ID of the parent document of the 'Booths' subcollection.
+            client_id = booth_doc.reference.parent.parent.id
 
-        if not app_state.get("is_activated", False):
-            print(f"[/] app_state {activation_id} belum diaktifkan")
-            return redirect("/activate")
-
-        current_mac = get_device_mac()
-        print(f"[/] Current MAC: {current_mac} | Stored: {app_state.get('device_id')}")
-
-        if app_state.get("device_id") != current_mac:
-            print(f"[/] MAC tidak cocok. Session dibersihkan.")
-            session.clear()
-            return redirect("/activate")
-
-        print(f"[/] Redirecting ke /{activation_id}")
-        return redirect(f"/{activation_id}")
+            # Store the necessary IDs in the session to track the logged-in state.
+            session.permanent = True  # Make the session last for the configured duration.
+            session['client_id'] = client_id
+            session['booth_id'] = booth_id
+            
+            print(f"Login successful for Booth Code: {booth_code}. ClientID: {client_id}, BoothID: {booth_id}")
+            
+            return redirect(url_for('home'))
+        else:
+            flash("Invalid Booth Code. Please try again.", "error")
+            return redirect(url_for('auth.sign'))
 
     except Exception as e:
-        logging.error("❌ Gagal verifikasi activation di /:", e)
-        return redirect("/activate")
+        flash(f"An error occurred during login: {e}", "error")
+        print(f"Error during login: {e}")
+        return redirect(url_for('auth.sign'))
+
+@auth_bp.route("/")
+def booth():
+    """
+    Displays the main photobooth page after successful login.
+    This route is protected; it redirects to the sign-in page if no session is found.
+    This is the correct place to render your main application page (index.html).
+    """
+    if 'booth_id' not in session or 'client_id' not in session:
+        flash("You must be logged in to view this page.", "error")
+        return redirect(url_for('auth.sign'))
+    
+    # Get the booth_id from the session to pass to the template
+    doc_id = session.get('booth_id')
+    return render_template("index.html", doc_id=doc_id)
 
 
+@auth_bp.route("/logout")
+def logout():
+    """Clears the session to log the user out and redirects to the sign-in page."""
+    session.clear()
+    flash("You have been successfully logged out.", "info")
+    return redirect(url_for('auth.sign'))
+
+# --- Voucher Blueprint (Placeholder) ---
+# Create a new blueprint for voucher-related functionality to resolve the BuildError
+voucher_bp = Blueprint('voucher', __name__)
+
+@voucher_bp.route("/voucher/<doc_id>")
+def voucher_input(doc_id):
+    """
+    This is a placeholder for your voucher input page.
+    It resolves the url_for('voucher.voucher_input') error.
+    """
+    return f"This is the voucher page for document: {doc_id}"
 
 
-# Middleware to check activation
-
-@app.before_request
-def check_activation():
-    exempt_paths = [
-        "/activate", "/login", "/logout", "/manage_users",
-        "/favicon.ico", "/xendit_webhook", "/session_end",
-        "/dashboard", "/admin_update"
-    ]
-
-    if (
-        request.path.startswith("/static/")
-        or request.endpoint == "static"
-        or any(request.path.startswith(p) for p in exempt_paths)
-    ):
-        return
-
-    if session.get("admin_logged_in"):
-        return
-
-    if request.path.count("/") == 1 and request.path != "/":
-        activation_id = session.get("activation_id")
-        if not activation_id:
-            return redirect("/activate")
-
-        try:
-            app_state_doc = db_fs.collection("app_state").document(activation_id).get()
-            if not app_state_doc.exists:
-                return redirect("/activate")
-
-            app_state = app_state_doc.to_dict()
-            if not app_state.get("is_activated", False):
-                return redirect("/activate")
-
-            current_mac = get_device_mac()
-            if app_state.get("device_id") != current_mac:
-                logging.warning(f"❌ Device mismatch: {current_mac} != {app_state.get('device_id')}")
-                session.clear()
-                return redirect("/activate")
-
-        except Exception as e:
-            logging.error("❌ Gagal validasi device:", e)
-            return redirect("/activate")
+# Register the blueprints with the main Flask app
+app.register_blueprint(auth_bp)
+app.register_blueprint(voucher_bp)
 
 
+# --- Main Application Route ---
 
-# Run Flask and Webview
+@app.route("/")
+def home():
+    """
+    The main entry point of the app.
+    Redirects to the sign-in page if not logged in,
+    or to the main booth page if a session already exists.
+    This function should only handle redirection.
+    """
+    if 'booth_id' in session:
+        return redirect(url_for('auth.booth'))
+    return redirect(url_for('auth.sign'))
+
+
+# --- Webview and Flask Server ---
+# The following code is for running Flask within a PyWebview desktop window.
 
 def start_flask():
-    app.run(debug=True, use_reloader=False)
+    """Function to run the Flask app."""
+    # use_reloader=False is important to prevent issues when running in a thread.
+    app.run(debug=True, use_reloader=False, port=5000)
 
 if __name__ == "__main__":
+    # Run Flask in a separate thread so it doesn't block the GUI thread.
     flask_thread = threading.Thread(target=start_flask, daemon=True)
     flask_thread.start()
 
-    time.sleep(1)
-    webview.create_window("Photobox", url="http://127.0.0.1:5000", width=1280, height=800, background_color="#ffffff")
+    # Wait a moment for Flask to start up before opening the window.
+    time.sleep(1) 
+
+    # Create and start the PyWebview desktop window pointing to the Flask server.
+    webview.create_window(
+        "Photobox", 
+        url="http://127.0.0.1:5000/", 
+        width=1280, 
+        height=800
+    )
     webview.start()

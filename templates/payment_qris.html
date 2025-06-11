@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bayar via QRIS - Photobox</title>
   <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
@@ -15,16 +14,10 @@
     <h1 class="text-3xl font-bold mb-4 text-indigo-600">Bayar via QRIS</h1>
     <p class="text-gray-600 mb-4">Silakan scan QRIS di bawah ini</p>
 
-    <!-- QR -->
     <canvas id="qrImage" class="w-64 h-64 mx-auto mb-6"></canvas>
-
-    <!-- Harga -->
     <div id="priceArea" class="text-xl font-semibold text-gray-700 mb-4"></div>
-
-    <!-- Timer -->
     <div id="timer" class="text-sm text-gray-500 mb-4"></div>
 
-    <!-- Loading -->
     <div id="loading" class="mt-4 hidden">
       <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -33,23 +26,35 @@
       <p class="text-xs text-gray-500 mt-2">Menunggu pembayaran...</p>
     </div>
   </div>
+  
+  <!-- ✅ FIXED: Storing server-rendered URLs in data attributes to avoid JS SyntaxErrors -->
+  <div id="js-config"
+       data-start-qris-url="{{ url_for('payment.start_payment_qris') }}"
+       data-check-qris-url-template="{{ url_for('payment.check_qr_status', qr_id='QR_ID_PLACEHOLDER') }}"
+       data-home-url="{{ url_for('home') }}"
+       data-status-url="{{ url_for('payment.payment_status') }}"
+       style="display: none;">
+  </div>
+
 
 <script>
-  let invoiceId = null;
+  // ✅ FIXED: Read URLs from the data attributes instead of using Jinja syntax in JS
+  const config = document.getElementById('js-config').dataset;
+
+  let qrId = null;
   let statusChecker = null;
   let countdownInterval = null;
-  let remainingTime = 60; // 1 menit timeout
+  let remainingTime = 180; // 3 menit timeout
 
+  // price_per_session is passed directly from the Python route
   const price = {{ price_per_session | tojson }};
-  const docId = "{{ doc_id }}"; // <-- tambahkan ini!
-
 
   window.onload = function() {
-    fetch(`/${docId}/start_payment`, { method: "POST" })
+    fetch(config.startQrisUrl, { method: "POST" })
       .then(res => res.json())
       .then(data => {
-        if (data.qr_string && data.qr_id) {
-          invoiceId = data.qr_id;
+        if (data.qr_string && data.id) { // Xendit uses 'id' for QRIS
+          qrId = data.id;
 
           new QRious({
             element: document.getElementById('qrImage'),
@@ -60,14 +65,16 @@
           document.getElementById('priceArea').innerText = "Total: Rp " + price.toLocaleString('id-ID');
           document.getElementById('loading').classList.remove('hidden');
 
-          statusChecker = setInterval(checkInvoiceStatus, 5000);
+          statusChecker = setInterval(checkQrStatus, 4000);
           countdownInterval = setInterval(updateCountdown, 1000);
         } else {
-          alert("Gagal membuat QRIS payment");
+          alert("Gagal membuat QRIS. Silakan coba lagi.");
+          console.error("Error creating QRIS:", data.error);
         }
       })
       .catch(err => {
-        console.error("Error start payment:", err);
+        console.error("Fetch error:", err);
+        alert("Terjadi kesalahan. Mohon coba lagi.");
       });
   };
 
@@ -80,25 +87,28 @@
     if (remainingTime <= 0) {
       clearInterval(statusChecker);
       clearInterval(countdownInterval);
-      window.location.href = "/";
+      window.location.href = config.homeUrl; // Redirect to home on timeout
     }
   }
 
-  function checkInvoiceStatus() {
-    if (!invoiceId) return;
-    fetch(`/${docId}/check_qr_status/${invoiceId}`)
+  function checkQrStatus() {
+    if (!qrId) return;
+    
+    const checkUrl = config.checkQrisUrlTemplate.replace('QR_ID_PLACEHOLDER', qrId);
+    
+    fetch(checkUrl)
       .then(res => res.json())
       .then(data => {
         if (data.status === "COMPLETED") {
           clearInterval(statusChecker);
           clearInterval(countdownInterval);
           confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-          setTimeout(() => window.location.href = "/", 5000);
-        } else if (["EXPIRED", "FAILED"].includes(data.status)) {
+          setTimeout(() => window.location.href = config.statusUrl, 3000);
+        } else if (data.status === "EXPIRED") {
           clearInterval(statusChecker);
           clearInterval(countdownInterval);
-          alert("QRIS pembayaran gagal/kadaluarsa. Silakan ulangi.");
-          window.location.href = "/";
+          alert("QRIS pembayaran telah kadaluarsa. Silakan ulangi.");
+          window.location.href = config.homeUrl;
         }
       })
       .catch(err => console.error("Error checking QR status:", err));

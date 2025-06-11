@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, session, flash
 from forms.forms import ActivationForm
-from utils.helpers import db_fs, get_or_set_device_id
+from utils.helpers import db_fs
 from utils.helpers import get_device_mac
 
 
