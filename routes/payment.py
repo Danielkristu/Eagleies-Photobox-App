@@ -64,7 +64,20 @@ def payment_qris():
         return redirect(url_for('auth.sign'))
 
     price = config.get('settings', {}).get('price', 35000)
-    return render_template("payment_qris.html", price_per_session=price)
+    # Fetch QRIS background from Firestore
+    bg_url = None
+    try:
+        booth_id = session.get('booth_id')
+        client_id = session.get('client_id')
+        if booth_id and client_id:
+            doc = db_fs.collection('Clients').document(client_id) \
+                .collection('Booths').document(booth_id) \
+                .collection('backgrounds').document('qrisBg').get()
+            if doc.exists:
+                bg_url = doc.to_dict().get('url')
+    except Exception as e:
+        print(f"Error fetching QRIS background: {e}")
+    return render_template("payment_qris.html", price_per_session=price, bg_url=bg_url)
 
 @payment_bp.route("/start_payment_qris", methods=["POST"])
 def start_payment_qris():

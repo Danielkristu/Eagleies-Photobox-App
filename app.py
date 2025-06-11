@@ -36,6 +36,7 @@ app.permanent_session_lifetime = timedelta(days=7)
 CORS(app)
 app.register_blueprint(payment_bp)
 app.register_blueprint(client_bp)
+app.register_blueprint(voucher_bp)
 # --- Firestore Setup ---
 # This uses Application Default Credentials.
 # Ensure the GOOGLE_APPLICATION_CREDENTIALS environment variable is set in your .env file
@@ -113,10 +114,20 @@ def booth():
     if 'booth_id' not in session or 'client_id' not in session:
         flash("You must be logged in to view this page.", "error")
         return redirect(url_for('auth.sign'))
-    
-    # Get the booth_id from the session to pass to the template
+    # Get the booth_id and client_id from the session to pass to the template
     doc_id = session.get('booth_id')
-    return render_template("index.html", doc_id=doc_id)
+    client_id = session.get('client_id')
+    bg_url = None
+    try:
+        if client_id and doc_id:
+            doc = db_fs.collection('Clients').document(client_id) \
+                .collection('Booths').document(doc_id) \
+                .collection('backgrounds').document('startBg').get()
+            if doc.exists:
+                bg_url = doc.to_dict().get('url')
+    except Exception as e:
+        print(f"Error fetching background URL for index: {e}")
+    return render_template("index.html", doc_id=doc_id, bg_url=bg_url)
 
 
 @auth_bp.route("/logout")
@@ -126,22 +137,8 @@ def logout():
     flash("You have been successfully logged out.", "info")
     return redirect(url_for('auth.sign'))
 
-# --- Voucher Blueprint (Placeholder) ---
-# Create a new blueprint for voucher-related functionality to resolve the BuildError
-voucher_bp = Blueprint('voucher', __name__)
-
-@voucher_bp.route("/voucher/<doc_id>")
-def voucher_input(doc_id):
-    """
-    This is a placeholder for your voucher input page.
-    It resolves the url_for('voucher.voucher_input') error.
-    """
-    return f"This is the voucher page for document: {doc_id}"
-
-
 # Register the blueprints with the main Flask app
 app.register_blueprint(auth_bp)
-app.register_blueprint(voucher_bp)
 
 
 # --- Main Application Route ---
@@ -155,8 +152,40 @@ def home():
     This function should only handle redirection.
     """
     if 'booth_id' in session:
-        return redirect(url_for('auth.booth'))
+        # Fetch background for index.html
+        bg_url = None
+        try:
+            booth_id = session.get('booth_id')
+            client_id = session.get('client_id')
+            if booth_id and client_id:
+                doc = db_fs.collection('Clients').document(client_id) \
+                    .collection('Booths').document(booth_id) \
+                    .collection('backgrounds').document('startBg').get()
+                if doc.exists:
+                    bg_url = doc.to_dict().get('url')
+        except Exception as e:
+            print(f"Error fetching background URL for index: {e}")
+        return render_template('index.html', doc_id=session['booth_id'], bg_url=bg_url)
     return redirect(url_for('auth.sign'))
+
+@app.route("/start")
+def start_page():
+    bg_url = None
+    try:
+        # Get booth_id from session (as in your app logic)
+        booth_id = session.get('booth_id')
+        if booth_id:
+            # Path: Clients/<client_id>/Booths/<booth_id>/backgrounds/homeBg
+            client_id = session.get('client_id')
+            if client_id:
+                doc = db_fs.collection('Clients').document(client_id) \
+                    .collection('Booths').document(booth_id) \
+                    .collection('backgrounds').document('homeBg').get()
+                if doc.exists:
+                    bg_url = doc.to_dict().get('url')
+    except Exception as e:
+        print(f"Error fetching background URL: {e}")
+    return render_template("StartPage.html", bg_url=bg_url)
 
 
 # --- Webview and Flask Server ---
@@ -183,3 +212,20 @@ if __name__ == "__main__":
         height=800
     )
     webview.start()
+
+@app.route('/payment_qris')
+def payment_qris():
+    bg_url = None
+    try:
+        booth_id = session.get('booth_id')
+        client_id = session.get('client_id')
+        if booth_id and client_id:
+            doc = db_fs.collection('Clients').document(client_id) \
+                .collection('Booths').document(booth_id) \
+                .collection('backgrounds').document('qrisBg').get()
+            if doc.exists:
+                bg_url = doc.to_dict().get('url')
+    except Exception as e:
+        print(f"Error fetching QRIS background: {e}")
+    price_per_session = 0  # Replace with your logic if needed
+    return render_template('payment_qris.html', bg_url=bg_url, price_per_session=price_per_session)

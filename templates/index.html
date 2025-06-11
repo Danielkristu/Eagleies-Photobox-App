@@ -5,8 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PhotoBox - Home</title>
   <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+  <style>
+    .dynamic-bg {
+      background: url('{{ bg_url }}') center/cover no-repeat fixed;
+    }
+    .default-bg {
+      background: #f3f4f6;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 h-screen flex items-center justify-center p-6">
+<body class="h-screen flex items-center justify-center p-6" {% if bg_url %}style="background: url('{{ bg_url }}') center/cover no-repeat fixed;"{% else %}style="background: #f3f4f6;"{% endif %}>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto w-full max-w-4xl">
     
@@ -19,12 +27,11 @@
     <!-- Card 2: Direct QRIS -->
     <div onclick="goToQris()" class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
       <img src="https://cdn-icons-png.flaticon.com/512/1034/1034555.png" alt="QRIS Icon" class="w-24 mx-auto mb-8">
-      <h2 class="text-4xl font-bold text-green-600 mb-2">Bayar via QRIS</h2>
+      <h2 class="text-4xl font-bold text-green-600 mb-2">Pay</h2>
     </div>
 
     <!-- Card Voucher -->
-    <div onclick="window.location.href='{{ url_for('voucher.voucher_input', doc_id=doc_id) }}'"
-         class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
+    <div onclick="window.location.href='{{ url_for('voucher.voucher_input', doc_id=doc_id) }}';" class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
       <img src="{{ url_for('static', filename='img/voucher-icon.png') }}" class="w-24 mx-auto mb-8" alt="Voucher">
       <h2 class="text-4xl font-bold text-purple-600 mb-2">Pakai Voucher</h2>
     </div>
