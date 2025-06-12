@@ -1,0 +1,11 @@
+# .gcloudignore
+.gcloudignore
+Dockerfile
+README.md
+*.pyc
+__pycache__/
+.env
+firebase_key.json
+serviceAccountKey.json
+node_modules/
+.git/
