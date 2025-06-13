@@ -3,12 +3,17 @@ import os
 import base64
 import requests
 import logging
+import sys
+# Always set GOOGLE_APPLICATION_CREDENTIALS to the root of the bundle, not utils/
+base_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 from flask import session
 from google.cloud import firestore
 from getmac import get_mac_address # ✅ RESTORED: Import for the MAC address function
 
 # --- Firestore Client Initialization ---
+# Set GOOGLE_APPLICATION_CREDENTIALS for Firestore access
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(base_dir, "serviceAccountKey.json")
 # Initialize the client once here to be shared across the application
 try:
     db_fs = firestore.Client()

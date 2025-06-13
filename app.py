@@ -3,6 +3,7 @@ import os
 import threading
 import time
 import webview
+import sys
 
 from flask import (
     Flask, render_template, redirect, request, session, flash, url_for, Blueprint
@@ -23,6 +24,10 @@ from routes.voucher import voucher_bp
 
 # Load environment variables from a .env file
 load_dotenv()
+
+# Set GOOGLE_APPLICATION_CREDENTIALS for PyInstaller (exe) and normal run
+base_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(base_dir, "serviceAccountKey.json")
 
 # Initialize Flask app
 app = Flask(__name__)

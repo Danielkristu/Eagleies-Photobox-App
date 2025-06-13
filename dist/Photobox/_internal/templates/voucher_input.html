@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Input Voucher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+  <style>
+    .keyboard-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .keyboard-key {
+      padding: 1rem 0;
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+
+    .keyboard-key:hover {
+      background-color: #e5e7eb;
+    }
+
+    .keyboard-key.key-wide {
+      grid-column: span 2;
+    }
+
+    .floating-back {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      background-color: #6366f1;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      z-index: 50;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .floating-back:hover {
+      background-color: #4f46e5;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6" style="background: url('{{ bg_url|default('', true) }}') center/cover no-repeat fixed;">
+
+  <!-- Floating Back Button -->
+  <a href="/" class="floating-back">&larr; Back</a>
+
+  <div class="bg-white shadow-xl rounded-xl p-6 w-full max-w-8xl border text-center px-4 md:px-8">
+    <h1 class="text-2xl font-bold text-indigo-600 mb-6">Masukkan Kode Voucher</h1>
+
+    <!-- Input -->
+    <form method="POST" action="{{ url_for('voucher.use_voucher', doc_id=doc_id) }}" class="mb-8 w-full">
+      <div class="flex flex-col gap-4 w-full">
+        <input type="text" name="voucher_code" id="voucher_code"
+          class="border border-gray-400 rounded px-4 py-3 text-xl tracking-widest text-center uppercase w-full"
+          placeholder="Contoh: JELLYEO" autofocus>
+          <!-- Keyboard -->
+    <div class="w-full space-y-2">
+      <div class="keyboard-row">
+        {% for key in "1234567890" %}
+        <div class="keyboard-key">{{ key }}</div>
+        {% endfor %}
+      </div>
+      <div class="keyboard-row">
+        {% for key in "QWERTYUIOP" %}
+        <div class="keyboard-key">{{ key }}</div>
+        {% endfor %}
+      </div>
+      <div class="keyboard-row">
+        {% for key in "ASDFGHJKL" %}
+        <div class="keyboard-key">{{ key }}</div>
+        {% endfor %}
+      </div>
+      <div class="keyboard-row">
+        {% for key in "ZXCVBNM" %}
+        <div class="keyboard-key">{{ key }}</div>
+        {% endfor %}
+      </div>
+      <div class="keyboard-row">
+        <div class="keyboard-key key-wide" id="key-backspace">&larr;</div>
+        <div class="keyboard-key key-wide" id="key-clear">Clear</div>
+      </div>
+    </div>
+  </div>
+        <button type="submit"
+          class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 text-lg font-semibold w-full">
+          Gunakan
+        </button>
+      </div>
+    </form>
+
+    
+
+  <script>
+    const input = document.getElementById("voucher_code");
+    const keys = document.querySelectorAll(".keyboard-key");
+
+    keys.forEach(key => {
+      key.addEventListener("click", () => {
+        const char = key.textContent;
+        if (char === "←") {
+          input.value = input.value.slice(0, -1);
+        } else if (char === "Clear") {
+          input.value = "";
+        } else {
+          input.value += char;
+        }
+        input.focus();
+      });
+    });
+  </script>
+</body>
+</html>

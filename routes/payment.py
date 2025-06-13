@@ -9,6 +9,7 @@ import logging
 import pyautogui
 import pygetwindow as gw
 import tkinter as tk
+import hashlib
 
 from flask import Blueprint, jsonify, session, redirect, url_for, request, render_template
 from google.cloud.exceptions import NotFound
@@ -21,6 +22,28 @@ from utils.helpers import get_booth_config, get_config_for_webhook, get_xendit_c
 db_fs = firestore.Client()
 payment_bp = Blueprint("payment", __name__)
 
+
+def download_and_replace_bg(bg_url, save_path='static/bg_cache/qris_bg.jpg', url_cache_path='static/bg_cache/last_qris_bg_url.txt'):
+    if not bg_url:
+        return None
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    last_url = None
+    if os.path.exists(url_cache_path):
+        with open(url_cache_path, 'r', encoding='utf-8') as f:
+            last_url = f.read().strip()
+    # Only download if the URL has changed
+    if last_url != bg_url or not os.path.exists(save_path):
+        try:
+            resp = requests.get(bg_url, timeout=10)
+            if resp.status_code == 200:
+                with open(save_path, 'wb') as f:
+                    f.write(resp.content)
+                with open(url_cache_path, 'w', encoding='utf-8') as f:
+                    f.write(bg_url)
+        except Exception as e:
+            print(f"Failed to download background: {e}")
+            return None
+    return '/' + save_path.replace('\\', '/').replace(os.path.abspath(os.curdir), '').lstrip('/')
 
 # --- Invoice Payment Routes (Already Refactored) ---
 @payment_bp.route("/start_payment_invoice", methods=["POST"])
@@ -77,7 +100,9 @@ def payment_qris():
                 bg_url = doc.to_dict().get('url')
     except Exception as e:
         print(f"Error fetching QRIS background: {e}")
-    return render_template("payment_qris.html", price_per_session=price, bg_url=bg_url)
+    # Always replace the old image with the new one
+    local_bg_path = download_and_replace_bg(bg_url) if bg_url else None
+    return render_template("payment_qris.html", price_per_session=price, bg_url=local_bg_path or bg_url)
 
 @payment_bp.route("/start_payment_qris", methods=["POST"])
 def start_payment_qris():
