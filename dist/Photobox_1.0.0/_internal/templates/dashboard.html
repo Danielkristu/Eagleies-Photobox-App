@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard - Photobox</title>
+  <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 flex">
+
+  <!-- SIDEBAR -->
+  <div class="w-64 bg-white h-screen shadow-lg fixed flex flex-col p-6">
+    <h2 class="text-2xl font-bold mb-8 text-center text-indigo-600">Dashboard</h2>
+    <nav class="flex flex-col space-y-4">
+      <button onclick="showSection('home')"  class="text-gray-700 hover:bg-indigo-100 rounded p-2 transition text-left" >Home</button>
+      <button onclick="showSection('reports')" class="text-gray-700 hover:bg-indigo-100 rounded p-2 transition text-left">Laporan Transaksi</button>
+      <button onclick="showSection('settings')" class="text-gray-700 hover:bg-indigo-100 rounded p-2 transition text-left">Pengaturan Aplikasi</button>   
+      <button onclick="showSection('voucher')" class="text-gray-700 hover:bg-indigo-100 rounded p-2 transition text-left">Manajemen Voucher</button>
+      <button onclick="goToHome()" class="text-gray-700 hover:bg-indigo-100 rounded p-2 transition text-left">
+        Kembali ke Home
+      </button>
+      
+      <a href="/logout" class="text-red-500 hover:bg-red-100 rounded p-2 transition mt-8">Logout</a>
+    </nav>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-1 ml-64 p-8">
+    <h2 class="text-2xl font-bold mb-8 text-left text-600">
+      Selamat Datang, {{ username }}!
+    </h2>
+
+    <!-- OVERVIEW SECTION -->
+    <div id="home" class="bg-white rounded-lg shadow-lg p-8">
+      <h1 class="text-2xl font-semibold mb-6">Overview</h1>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-indigo-100 p-6 rounded-lg text-center">
+          <div class="text-gray-500">Total Penjualan</div>
+          <div class="text-2xl font-bold text-indigo-700 mt-2">Rp {{ "{:,.0f}".format(total_paid) }}</div>
+        </div>
+        <div class="bg-green-100 p-6 rounded-lg text-center">
+          <div class="text-gray-500">Transaksi Berhasil</div>
+          <div class="text-2xl font-bold text-green-700 mt-2">{{ count_paid }} Transaksi</div>
+        </div>
+        <div class="bg-yellow-100 p-6 rounded-lg text-center">
+          <div class="text-gray-500">Harga Per Sesi</div>
+          <div class="text-2xl font-bold text-yellow-700 mt-2">Rp {{ config.price or '' }}</div>
+
+        </div>        
+      </div>
+    </div>
+    
+    
+    <!-- SETTINGS SECTION -->
+    <!-- SETTINGS SECTION -->
+<div id="settings" class="bg-white rounded-lg shadow-lg p-8">
+  <h1 class="text-2xl font-semibold mb-6">Pengaturan Aplikasi</h1>
+  <form method="POST" action="/admin_update" class="bg-white p-6 rounded shadow space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Harga per Sesi</label>
+        <input type="number" name="price_per_session" value="{{ config.price or 10000 }}" class="border p-2 rounded w-full" placeholder="Harga per Sesi">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Xendit API Key</label>
+        <input type="text" name="xendit_api_key" value="{{ config.xendit_api_key }}" class="border p-2 rounded w-full" placeholder="Xendit API Key">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Callback URL</label>
+        <input type="text" name="callback_url" value="{{ config.callback_url }}" class="border p-2 rounded w-full" placeholder="Callback URL">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">DSLRBooth API URL</label>
+        <input type="text" name="dslrbooth_api_url" value="{{ config.dslrbooth_api_url }}" class="border p-2 rounded w-full" placeholder="DSLRBooth API URL">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">DSLRBooth API Password</label>
+        <input type="text" name="dslrbooth_api_password" value="{{ config.dslrbooth_api_password }}" class="border p-2 rounded w-full" placeholder="DSLRBooth API Password">
+      </div>
+
+    </div>
+    <button type="submit" class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded">
+      Simpan Perubahan
+    </button>
+  </form>
+</div>
+
+
+    <!-- REPORTS SECTION -->
+    <div id="reports" class="hidden bg-white rounded-lg shadow-lg p-8">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold">Laporan Transaksi</h1>
+        <button onclick="exportToExcel()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
+          Download Excel
+        </button>
+      </div>
+      
+      <!-- FILTER Status & Tanggal -->
+<div class="flex flex-col md:flex-row md:items-end md:space-x-4 mb-6">
+  <div>
+    <label for="statusFilter" class="block mb-1 font-semibold">Status</label>
+    <select id="statusFilter" onchange="filterTransactions()" class="border p-2 rounded w-60">
+      <option value="">Semua</option>
+      <option value="PAID">PAID</option>
+      <option value="EXPIRED">EXPIRED</option>
+      <option value="FAILED">FAILED</option>
+    </select>
+  </div>
+  <div>
+    <label class="block mb-1 font-semibold">Tanggal Mulai</label>
+    <input type="date" id="startDate" onchange="filterTransactions()" class="border p-2 rounded w-60" />
+  </div>
+  <div>
+    <label class="block mb-1 font-semibold">Tanggal Akhir</label>
+    <input type="date" id="endDate" onchange="filterTransactions()" class="border p-2 rounded w-60" />
+  </div>
+</div>
+
+
+      <!-- CHART -->
+      <canvas id="transactionChart" class="mb-8 w-full h-[350px]"></canvas>
+
+
+
+
+
+
+      <!-- TRANSACTION TABLE -->
+      <div class="overflow-x-auto">
+        <table id="transactionsTable" class="min-w-full bg-white">
+          <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <tr>
+              <th class="py-3 px-6 text-left">Invoice ID</th>
+              <th class="py-3 px-6 text-left">Amount (IDR)</th>
+              <th class="py-3 px-6 text-left">Status</th>
+              <th class="py-3 px-6 text-left">Tanggal</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-600 text-sm font-light" id="transactionBody">
+            <!-- DATA akan diisi dari Javascript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- VOUCHER SECTION -->
+<div id="voucher" class="hidden bg-white rounded-lg shadow-lg p-8">
+  <h1 class="text-2xl font-semibold mb-6">Manajemen Voucher</h1>
+  
+
+  <!-- Form Tambah Voucher -->
+  <form method="POST" action="/add_voucher" class="flex flex-col md:flex-row gap-4 mb-6">
+    <input type="text" name="voucher_code" placeholder="Kode Voucher" required class="p-2 border rounded w-full md:w-1/4 uppercase">
+    <input type="number" name="voucher_price" placeholder="Harga Voucher" required class="p-2 border rounded w-full md:w-1/4">
+    <label class="flex items-center gap-2">
+      <input type="checkbox" name="voucher_active" checked>
+      Aktif?
+    </label>
+    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Tambah</button>
+  </form>
+
+  <!-- Tabel Daftar Voucher -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border">
+      <thead class="bg-indigo-100 text-indigo-800">
+        <tr>
+          <th class="text-left p-2">Kode</th>
+          <th class="text-left p-2">Harga</th>
+          <th class="text-left p-2">Status</th>
+          <th class="text-left p-2">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+  {% for voucher in vouchers %}
+  <tr class="border-t">
+    <form method="POST" action="/update_voucher">
+      <input type="hidden" name="voucher_code" value="{{ voucher.id }}">
+      <td class="p-2 font-mono uppercase">
+        <input type="text" name="voucher_code_edit" value="{{ voucher.id }}" readonly class="bg-gray-100 w-full">
+      </td>
+      <td class="p-2">
+        <input type="number" name="voucher_price" value="{{ voucher.price }}" class="border rounded p-1 w-full">
+      </td>
+      <td class="p-2">
+        <select name="voucher_active" class="border rounded p-1 w-full">
+          <option value="true" {% if voucher.active %}selected{% endif %}>Aktif</option>
+          <option value="false" {% if not voucher.active %}selected{% endif %}>Nonaktif</option>
+        </select>
+      </td>
+      <td class="p-2 flex gap-2">
+        <button type="submit" class="text-blue-600 hover:underline">Update</button>
+      </form>
+      <form method="POST" action="/delete_voucher">
+        <input type="hidden" name="voucher_code" value="{{ voucher.id }}">
+        <button type="submit" class="text-red-600 hover:underline">Hapus</button>
+      </form>
+      </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+    </table>
+  </div>
+</div>
+
+  </div>
+
+  
+  <!-- SCRIPT -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <script>
+    function showSection(section) {
+  ['home', 'reports', 'settings', 'voucher'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById(section).classList.remove('hidden');
+
+  if (section === 'reports') filterTransactions();
+}
+
+
+
+
+
+    showSection('home'); // Default
+
+  {% if transactions_json %}
+  const transactions = {{ transactions_json | safe }};
+  {% else %}
+    const transactions = [];
+  {% endif %}
+
+
+  function goToHome() {
+    const docId = "{{ doc_id }}";
+    if (docId) {
+      window.location.href = `/${docId}`;
+    } else {
+      alert("Document ID tidak tersedia.");
+    }
+  }
+
+  function filterTransactions() {
+  const status = document.getElementById('statusFilter').value;
+  const startDate = document.getElementById('startDate').value;
+  const endDate = document.getElementById('endDate').value;
+
+  const tbody = document.getElementById('transactionBody');
+  tbody.innerHTML = '';
+
+  let filtered = [...transactions];
+
+  if (status) {
+    filtered = filtered.filter(t => t.status === status);
+  }
+
+  if (startDate) {
+  const filterStart = new Date(startDate + "T00:00:00");
+  filtered = filtered.filter(t => {
+    const created = new Date(t.created);
+    return created.toString() !== "Invalid Date" && created >= filterStart;
+  });
+}
+
+if (endDate) {
+  const filterEnd = new Date(endDate + "T23:59:59");
+  filtered = filtered.filter(t => {
+    const created = new Date(t.created);
+    return created.toString() !== "Invalid Date" && created <= filterEnd;
+  });
+}
+
+
+  filtered.forEach(tx => {
+    const tr = `<tr class="border-b border-gray-200 hover:bg-gray-100">
+                  <td class="py-3 px-6">${tx.id}</td>
+                  <td class="py-3 px-6">${tx.amount.toLocaleString('id-ID')}</td>
+                  <td class="py-3 px-6">${tx.status}</td>
+                  <td class="py-3 px-6">${tx.created.substring(0,10)}</td>
+                </tr>`;
+    tbody.innerHTML += tr;
+  });
+
+  buildChart(filtered);  // Update grafik juga
+}
+
+
+
+let transactionChart = null;
+
+function buildChart(data) {
+  const canvas = document.getElementById('transactionChart');
+  const ctx = canvas?.getContext('2d');
+
+  if (!ctx) return;
+
+  const perDay = {};
+
+  data.forEach(tx => {
+    const date = tx.created.substring(0, 10);
+    if (!perDay[date]) {
+      perDay[date] = { count: 0, total: 0 };
+    }
+    perDay[date].count += 1;
+    perDay[date].total += tx.amount;
+  });
+
+  const sortedDates = Object.keys(perDay).sort();
+  const counts = sortedDates.map(d => perDay[d].count);
+  const totals = sortedDates.map(d => perDay[d].total);
+
+  // Jika chart belum dibuat → buat chart
+  if (!transactionChart) {
+    transactionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: sortedDates,
+        datasets: [
+          {
+            label: 'Jumlah Transaksi',
+            data: counts,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            yAxisID: 'y'
+          },
+          {
+            label: 'Total Penjualan (Rp)',
+            data: totals,
+            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Jumlah Transaksi'
+            }
+          },
+          y1: {
+            beginAtZero: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Total Penjualan (Rp)'
+            },
+            grid: {
+              drawOnChartArea: false
+            }
+          }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                if (context.dataset.label.includes('Penjualan')) {
+                  return `${context.dataset.label}: Rp ${context.parsed.y.toLocaleString('id-ID')}`;
+                } else {
+                  return `${context.dataset.label}: ${context.parsed.y} transaksi`;
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+  } else {
+    // Jika chart SUDAH dibuat, cukup update datanya
+    transactionChart.data.labels = sortedDates;
+    transactionChart.data.datasets[0].data = counts;
+    transactionChart.data.datasets[1].data = totals;
+    transactionChart.update();
+  }
+}
+
+
+
+function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+  const ws_data = [
+    ["Invoice ID", "Amount (IDR)", "Status", "Tanggal"]
+  ];
+
+  transactions.forEach(tx => {
+    ws_data.push([tx.id, tx.amount, tx.status, tx.created.substring(0,10)]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb, ws, "Transaksi");
+
+  XLSX.writeFile(wb, "Laporan_Transaksi.xlsx");
+}
+
+function updateOverviewStats() {
+  const totalPaid = transactions.filter(tx => tx.status === "PAID");
+  const totalSales = totalPaid.reduce((sum, tx) => sum + tx.amount, 0);
+
+  document.getElementById("totalSales").textContent = "Rp " + totalSales.toLocaleString('id-ID');
+  document.getElementById("totalPaidCount").textContent = totalPaid.length;
+}
+
+updateOverviewStats(); // Panggil saat halaman dimuat
+
+  </script>
+
+</body>
+</html>

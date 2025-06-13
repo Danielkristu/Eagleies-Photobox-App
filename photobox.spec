@@ -6,6 +6,7 @@ block_cipher = None
 import sys
 import os
 from PyInstaller.utils.hooks import collect_submodules
+import datetime
 
 # Path to your main app
 main_script = 'app.py'
@@ -24,6 +25,24 @@ datas = [
 
 # Hidden imports for PyWebview and Flask
 hiddenimports = collect_submodules('webview') + collect_submodules('flask')
+
+# --- Versioning ---
+def get_next_version(version_file='version.txt'):
+    if os.path.exists(version_file):
+        with open(version_file, 'r') as vf:
+            version = vf.read().strip()
+        parts = version.split('.')
+        if len(parts) == 3 and all(p.isdigit() for p in parts):
+            major, minor, patch = map(int, parts)
+            patch += 1
+            return f"{major}.{minor}.{patch}"
+    # If no version file or invalid, start at 1.0.0
+    return "1.0.0"
+
+version_file = 'version.txt'
+version = get_next_version(version_file)
+with open(version_file, 'w') as vf:
+    vf.write(version)
 
 # Build the exe
 from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
@@ -49,7 +68,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='Photobox',
+    name=f'Photobox_{version}',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -64,5 +83,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='Photobox'
+    name=f'Photobox_{version}'
 )

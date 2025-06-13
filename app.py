@@ -13,6 +13,7 @@ from google.cloud import firestore
 from datetime import timedelta
 from dotenv import load_dotenv
 from routes import register_routes
+import waitress
 
 from routes.auth import auth_bp
 from routes.activate import activate_bp
@@ -199,7 +200,8 @@ def start_page():
 def start_flask():
     """Function to run the Flask app."""
     # use_reloader=False is important to prevent issues when running in a thread.
-    app.run(debug=True, use_reloader=False, port=5000)
+    # waitress.serve will not show the Flask dev server warning and is production-ready
+    waitress.serve(app, host='127.0.0.1', port=5000)
 
 if __name__ == "__main__":
     # Run Flask in a separate thread so it doesn't block the GUI thread.
@@ -207,30 +209,17 @@ if __name__ == "__main__":
     flask_thread.start()
 
     # Wait a moment for Flask to start up before opening the window.
-    time.sleep(1) 
+    time.sleep(1)
 
     # Create and start the PyWebview desktop window pointing to the Flask server.
     webview.create_window(
-        "Photobox", 
-        url="http://127.0.0.1:5000/", 
-        width=1280, 
+        "Photobox",
+        url="http://127.0.0.1:5000/",
+        width=1280,
         height=800
     )
     webview.start()
 
-@app.route('/payment_qris')
-def payment_qris():
-    bg_url = None
-    try:
-        booth_id = session.get('booth_id')
-        client_id = session.get('client_id')
-        if booth_id and client_id:
-            doc = db_fs.collection('Clients').document(client_id) \
-                .collection('Booths').document(booth_id) \
-                .collection('backgrounds').document('qrisBg').get()
-            if doc.exists:
-                bg_url = doc.to_dict().get('url')
-    except Exception as e:
-        print(f"Error fetching QRIS background: {e}")
-    price_per_session = 0  # Replace with your logic if needed
-    return render_template('payment_qris.html', bg_url=bg_url, price_per_session=price_per_session)
+# Only run the following if NOT running as a PyInstaller bundle
+if __name__ == "__main__" and not hasattr(sys, 'frozen'):
+    app.run(debug=True, use_reloader=False, port=5000)

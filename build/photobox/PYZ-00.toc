@@ -2517,6 +2517,9 @@
   ('opcode',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\opcode.py',
    'PYMODULE'),
+  ('optparse',
+   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\optparse.py',
+   'PYMODULE'),
   ('ordlookup',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\ordlookup\\__init__.py',
@@ -2627,6 +2630,9 @@
   ('pprint',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pprint.py',
    'PYMODULE'),
+  ('profile',
+   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\profile.py',
+   'PYMODULE'),
   ('proto',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\proto\\__init__.py',
@@ -2734,6 +2740,9 @@
   ('proxy_tools',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\proxy_tools\\__init__.py',
+   'PYMODULE'),
+  ('pstats',
+   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pstats.py',
    'PYMODULE'),
   ('py_compile',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\py_compile.py',
@@ -4058,6 +4067,62 @@
    'PYMODULE'),
   ('uuid',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\uuid.py',
+   'PYMODULE'),
+  ('waitress',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\__init__.py',
+   'PYMODULE'),
+  ('waitress.adjustments',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\adjustments.py',
+   'PYMODULE'),
+  ('waitress.buffers',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\buffers.py',
+   'PYMODULE'),
+  ('waitress.channel',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\channel.py',
+   'PYMODULE'),
+  ('waitress.compat',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\compat.py',
+   'PYMODULE'),
+  ('waitress.parser',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\parser.py',
+   'PYMODULE'),
+  ('waitress.proxy_headers',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\proxy_headers.py',
+   'PYMODULE'),
+  ('waitress.receiver',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\receiver.py',
+   'PYMODULE'),
+  ('waitress.rfc7230',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\rfc7230.py',
+   'PYMODULE'),
+  ('waitress.server',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\server.py',
+   'PYMODULE'),
+  ('waitress.task',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\task.py',
+   'PYMODULE'),
+  ('waitress.trigger',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\trigger.py',
+   'PYMODULE'),
+  ('waitress.utilities',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\utilities.py',
+   'PYMODULE'),
+  ('waitress.wasyncore',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\waitress\\wasyncore.py',
    'PYMODULE'),
   ('webbrowser',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\webbrowser.py',

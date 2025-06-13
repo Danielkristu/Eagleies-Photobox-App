@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bayar via QRIS - Photobox</title>
+  <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body id="main-body" class="flex flex-col items-center justify-center min-h-screen transition-colors duration-500" style="background: url('{{ bg_url|default('', true) }}') center/cover no-repeat fixed;">
+  <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
+    <h1 class="text-3xl font-bold mb-4 text-indigo-600">Bayar via QRIS</h1>
+    <p class="text-gray-600 mb-4">Silakan scan QRIS di bawah ini</p>
+
+    <canvas id="qrImage" class="w-64 h-64 mx-auto mb-6"></canvas>
+    <div id="priceArea" class="text-xl font-semibold text-gray-700 mb-4"></div>
+    <div id="timer" class="text-sm text-gray-500 mb-4"></div>
+
+    <div id="loading" class="mt-4 hidden">
+      <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+      <p class="text-xs text-gray-500 mt-2">Menunggu pembayaran...</p>
+    </div>
+  </div>
+  
+  <!-- ✅ FIXED: Storing server-rendered URLs in data attributes to avoid JS SyntaxErrors -->
+  <div id="js-config"
+       data-start-qris-url="{{ url_for('payment.start_payment_qris') }}"
+       data-check-qris-url-template="{{ url_for('payment.check_qr_status', qr_id='QR_ID_PLACEHOLDER') }}"
+       data-home-url="{{ url_for('home') }}"
+       data-status-url="{{ url_for('payment.payment_status') }}"
+       style="display: none;">
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var body = document.getElementById('main-body');
+      var bgUrl = "{{ bg_url|default('', true) }}";
+      // Fix: decode HTML entities (&amp; -> &)
+      bgUrl = bgUrl.replace(/&amp;/g, '&');
+
+      // Helper to set background from base64
+      function setBgFromBase64(base64) {
+        body.style.background = "url('" + base64 + "') center/cover no-repeat fixed";
+      }
+
+      // Check if we have a saved image and if the URL matches
+      const savedBg = localStorage.getItem('photobox_bg');
+      const savedUrl = localStorage.getItem('photobox_bg_url');
+      if (savedBg && savedUrl === bgUrl && bgUrl && bgUrl !== 'None' && bgUrl.trim() !== '') {
+        setBgFromBase64(savedBg);
+      } else if (bgUrl && bgUrl !== 'None' && bgUrl.trim() !== '') {
+        // Download and store the image as base64
+        fetch(bgUrl)
+          .then(response => response.blob())
+          .then(blob => {
+            const reader = new FileReader();
+            reader.onloadend = function() {
+              const base64data = reader.result;
+              localStorage.setItem('photobox_bg', base64data);
+              localStorage.setItem('photobox_bg_url', bgUrl);
+              setBgFromBase64(base64data);
+            };
+            reader.readAsDataURL(blob);
+          })
+          .catch(() => {
+            // fallback to direct url if fetch fails
+            body.style.background = "url('" + bgUrl + "') center/cover no-repeat fixed";
+          });
+      }
+    });
+  </script>
+  <script>
+    // ✅ FIXED: Read URLs from the data attributes instead of using Jinja syntax in JS
+    const config = document.getElementById('js-config').dataset;
+    let qrId = null;
+    let statusChecker = null;
+    let countdownInterval = null;
+    let remainingTime = 180; // 3 menit timeout
+  </script>
+  <script>
+    // price_per_session is passed directly from the Python route
+    // Declare price as a string and parse it to avoid JS errors
+    var price = JSON.parse('{{ price_per_session | tojson | safe }}');
+    window.onload = function() {
+      fetch(config.startQrisUrl, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          if (data.qr_string && data.id) { // Xendit uses 'id' for QRIS
+            qrId = data.id;
+            new QRious({
+              element: document.getElementById('qrImage'),
+              value: data.qr_string,
+              size: 300
+            });
+            document.getElementById('priceArea').innerText = "Total: Rp " + price.toLocaleString('id-ID');
+            document.getElementById('loading').classList.remove('hidden');
+            statusChecker = setInterval(checkQrStatus, 4000);
+            countdownInterval = setInterval(updateCountdown, 1000);
+          } else {
+            alert("Gagal membuat QRIS. Silakan coba lagi.");
+            console.error("Error creating QRIS:", data.error);
+          }
+        })
+        .catch(err => {
+          console.error("Fetch error:", err);
+          alert("Terjadi kesalahan. Mohon coba lagi.");
+        });
+    };
+    function updateCountdown() {
+      remainingTime--;
+      const minutes = Math.floor(remainingTime / 60);
+      const seconds = remainingTime % 60;
+      document.getElementById('timer').innerText = `Lakukan pembayaran dalam ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      if (remainingTime <= 0) {
+        clearInterval(statusChecker);
+        clearInterval(countdownInterval);
+        window.location.href = config.homeUrl; // Redirect to home on timeout
+      }
+    }
+    function checkQrStatus() {
+      if (!qrId) return;
+      const checkUrl = config.checkQrisUrlTemplate.replace('QR_ID_PLACEHOLDER', qrId);
+      fetch(checkUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "COMPLETED") {
+            clearInterval(statusChecker);
+            clearInterval(countdownInterval);
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+            setTimeout(() => window.location.href = config.statusUrl, 3000);
+          } else if (data.status === "EXPIRED") {
+            clearInterval(statusChecker);
+            clearInterval(countdownInterval);
+            alert("QRIS pembayaran telah kadaluarsa. Silakan ulangi.");
+            window.location.href = config.homeUrl;
+          }
+        })
+        .catch(err => console.error("Error checking QR status:", err));
+    }
+  </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-('D:\\Eagleies Creative\\Photobox\\build\\photobox\\Photobox.exe',
+('D:\\Eagleies Creative\\Photobox\\build\\photobox\\Photobox_1.0.0.exe',
  True,
  False,
  True,
@@ -30,7 +30,7 @@
  None,
  None,
  None,
- 'D:\\Eagleies Creative\\Photobox\\build\\photobox\\Photobox.pkg',
+ 'D:\\Eagleies Creative\\Photobox\\build\\photobox\\Photobox_1.0.0.pkg',
  [('pyi-contents-directory _internal', '', 'OPTION'),
   ('PYZ-00.pyz',
    'D:\\Eagleies Creative\\Photobox\\build\\photobox\\PYZ-00.pyz',
@@ -90,7 +90,7 @@
  [],
  False,
  False,
- 1749794853,
+ 1749806739,
  [('run.exe',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
