@@ -27,7 +27,7 @@ def get_booth_config():
     """
     Securely fetches the configuration for the currently logged-in booth.
     It fetches the main booth document and merges it with data from the
-    'settings' subcollection.
+    'settings' field (if present), the 'settings' subcollection, and merges in fields from the parent client document (e.g., xendit_api_key).
     """
     if 'client_id' not in session or 'booth_id' not in session:
         logging.warning("GET_CONFIG: Attempted to get config without a valid session.")
@@ -49,18 +49,35 @@ def get_booth_config():
         booth_data = booth_doc.to_dict()
         logging.info(f"✅ GET_CONFIG: Found main booth document.")
 
-        # 2. Fetch the settings from the subcollection
+        # 2. Merge 'settings' field if present in booth document
+        if 'settings' in booth_data and isinstance(booth_data['settings'], dict):
+            booth_data.update(booth_data['settings'])
+            logging.info(f"✅ GET_CONFIG: Merged 'settings' field from booth document.")
+            del booth_data['settings']
+
+        # 3. Fetch the settings from the subcollection
         settings_collection_ref = booth_doc_ref.collection('settings')
-        # We assume settings are in the first document of the subcollection
         settings_docs = list(settings_collection_ref.limit(1).stream())
 
         if settings_docs:
             settings_data = settings_docs[0].to_dict()
             logging.info(f"✅ GET_CONFIG: Found settings document in subcollection.")
-            # 3. Merge the dictionaries, giving preference to keys in settings_data
+            # Merge the dictionaries, giving preference to keys in settings_data
             booth_data.update(settings_data)
         else:
             logging.warning(f"⚠️ GET_CONFIG: No settings document found in the 'settings' subcollection for BoothID: {booth_id}. API keys might be missing.")
+
+        # 4. Fetch and merge parent client document fields (e.g., xendit_api_key)
+        client_doc_ref = db_fs.collection('Clients').document(client_id)
+        client_doc = client_doc_ref.get()
+        if client_doc.exists:
+            client_data = client_doc.to_dict()
+            for k, v in client_data.items():
+                if k not in booth_data:
+                    booth_data[k] = v
+            logging.info(f"✅ GET_CONFIG: Merged parent client document fields into config.")
+        else:
+            logging.warning(f"⚠️ GET_CONFIG: Parent client document not found for ClientID: {client_id}.")
 
         return booth_data
 
@@ -80,23 +97,21 @@ class XenditAuth(requests.auth.AuthBase):
 def get_xendit_client(config):
     """
     Creates a requests session with the correct Xendit API key from the config.
+    Logs the extracted API key (masked) and whether extraction succeeded or failed.
     """
     if not config:
         logging.error("❌ XENDIT_CLIENT: Received no config to create client.")
+        print("[XENDIT_CLIENT] No config provided.")
         return None
-        
-    # ✅ CHANGED: Look for the API key directly in the merged config dictionary.
     logging.info(f"XENDIT_CLIENT: Received config. Looking for 'xendit_api_key'.")
     api_key = config.get('xendit_api_key')
-    
     if not api_key:
         logging.error("❌ XENDIT_CLIENT: The 'xendit_api_key' is missing from the configuration.")
+        print("[XENDIT_CLIENT] API key extraction FAILED: key not found in config.")
         return None
-
-    # For security, we log only a portion of the key
     masked_key = f"{api_key[:5]}...{api_key[-4:]}" if len(api_key) > 9 else api_key
     logging.info(f"✅ XENDIT_CLIENT: Successfully extracted API key: {masked_key}")
-
+    print(f"[XENDIT_CLIENT] API key extraction SUCCESS: {masked_key}")
     session_req = requests.Session()
     session_req.headers.update({'Content-Type': 'application/json'})
     session_req.auth = XenditAuth(api_key)
