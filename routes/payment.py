@@ -102,7 +102,9 @@ def payment_qris():
         print(f"Error fetching QRIS background: {e}")
     # Always replace the old image with the new one
     local_bg_path = download_and_replace_bg(bg_url) if bg_url else None
-    return render_template("payment_qris.html", price_per_session=price, bg_url=local_bg_path or bg_url)
+    import time
+    cache_buster = int(time.time())
+    return render_template("payment_qris.html", price_per_session=price, bg_url=local_bg_path or bg_url, cache_buster=cache_buster)
 
 @payment_bp.route("/start_payment_qris", methods=["POST"])
 def start_payment_qris():

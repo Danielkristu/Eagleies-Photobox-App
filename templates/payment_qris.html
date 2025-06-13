@@ -7,8 +7,70 @@
   <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body {
+      background-image: url('{{ bg_url }}?v={{ cache_buster }}');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    /* --- Zoom-Fade Transition Styles --- */
+    .page-transition {
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: white;
+      pointer-events: none;
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.5s cubic-bezier(.4,0,.2,1), transform 0.5s cubic-bezier(.4,0,.2,1);
+    }
+    .page-transition.hide {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+    .page-transition.show {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+  </style>
 </head>
-<body id="main-body" class="flex flex-col items-center justify-center min-h-screen transition-colors duration-500" style="background: url('{{ bg_url|default('', true) }}') center/cover no-repeat fixed;">
+<body id="main-body" class="flex flex-col items-center justify-center min-h-screen transition-colors duration-500">
+  <div class="page-transition show" id="pageTransition"></div>
+  <script>
+    // Preload background image and remove overlay only after all content loaded + 0.5s delay
+    document.addEventListener('DOMContentLoaded', function() {
+      const transition = document.getElementById('pageTransition');
+      const bgUrl = `{{ bg_url }}?v={{ cache_buster }}`;
+      // Set overlay background to match page bg
+      transition.style.backgroundImage = `url('${bgUrl}')`;
+      transition.style.backgroundSize = 'cover';
+      transition.style.backgroundPosition = 'center';
+      transition.style.backgroundRepeat = 'no-repeat';
+      transition.style.backgroundAttachment = 'fixed';
+      // Preload image
+      const img = new Image();
+      img.src = bgUrl;
+      img.onload = function() {
+        window.requestAnimationFrame(() => {
+          setTimeout(() => {
+            transition.classList.add('hide');
+            transition.classList.remove('show');
+          }, 500);
+        });
+      };
+      // If image fails to load, fallback to fade anyway after 1.5s
+      setTimeout(() => {
+        if (!transition.classList.contains('hide')) {
+          transition.classList.add('hide');
+          transition.classList.remove('show');
+        }
+      }, 1500);
+    });
+  </script>
   <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
     <h1 class="text-3xl font-bold mb-4 text-indigo-600">Bayar via QRIS</h1>
     <p class="text-gray-600 mb-4">Silakan scan QRIS di bawah ini</p>
@@ -34,44 +96,6 @@
        data-status-url="{{ url_for('payment.payment_status') }}"
        style="display: none;">
   </div>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      var body = document.getElementById('main-body');
-      var bgUrl = "{{ bg_url|default('', true) }}";
-      // Fix: decode HTML entities (&amp; -> &)
-      bgUrl = bgUrl.replace(/&amp;/g, '&');
-
-      // Helper to set background from base64
-      function setBgFromBase64(base64) {
-        body.style.background = "url('" + base64 + "') center/cover no-repeat fixed";
-      }
-
-      // Check if we have a saved image and if the URL matches
-      const savedBg = localStorage.getItem('photobox_bg');
-      const savedUrl = localStorage.getItem('photobox_bg_url');
-      if (savedBg && savedUrl === bgUrl && bgUrl && bgUrl !== 'None' && bgUrl.trim() !== '') {
-        setBgFromBase64(savedBg);
-      } else if (bgUrl && bgUrl !== 'None' && bgUrl.trim() !== '') {
-        // Download and store the image as base64
-        fetch(bgUrl)
-          .then(response => response.blob())
-          .then(blob => {
-            const reader = new FileReader();
-            reader.onloadend = function() {
-              const base64data = reader.result;
-              localStorage.setItem('photobox_bg', base64data);
-              localStorage.setItem('photobox_bg_url', bgUrl);
-              setBgFromBase64(base64data);
-            };
-            reader.readAsDataURL(blob);
-          })
-          .catch(() => {
-            // fallback to direct url if fetch fails
-            body.style.background = "url('" + bgUrl + "') center/cover no-repeat fixed";
-          });
-      }
-    });
-  </script>
   <script>
     // ✅ FIXED: Read URLs from the data attributes instead of using Jinja syntax in JS
     const config = document.getElementById('js-config').dataset;
@@ -140,6 +164,26 @@
         })
         .catch(err => console.error("Error checking QR status:", err));
     }
+    // Add transition on navigation (for all links/buttons)
+    function transitionAndGo(url) {
+      const transition = document.getElementById('pageTransition');
+      transition.classList.remove('hide');
+      transition.classList.add('show');
+      setTimeout(() => {
+        window.location.href = url;
+      }, 400);
+    }
+    // Optional: Intercept all anchor clicks for smooth transition
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('a').forEach(function(a) {
+        if (a.target !== '_blank' && a.href && !a.href.startsWith('javascript:')) {
+          a.addEventListener('click', function(e) {
+            e.preventDefault();
+            transitionAndGo(a.href);
+          });
+        }
+      });
+    });
   </script>
 </body>
 </html>

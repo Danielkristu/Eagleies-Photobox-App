@@ -223,3 +223,4 @@ if __name__ == "__main__":
 # Only run the following if NOT running as a PyInstaller bundle
 if __name__ == "__main__" and not hasattr(sys, 'frozen'):
     app.run(debug=True, use_reloader=False, port=5000)
+    waitress.serve(app, host="0.0.0.0", port=8080)

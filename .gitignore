@@ -3,3 +3,4 @@ firebase_key.json
 logs/
 __pycache__/
 serviceAccountKey.json
+/dist

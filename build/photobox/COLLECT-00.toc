@@ -1,5 +1,5 @@
-([('Photobox_1.0.0.exe',
-   'D:\\Eagleies Creative\\Photobox\\build\\photobox\\Photobox_1.0.0.exe',
+([('Photobox_1.0.1.exe',
+   'D:\\Eagleies Creative\\Photobox\\build\\photobox\\Photobox_1.0.1.exe',
    'EXECUTABLE'),
   ('webview\\lib\\Microsoft.Web.WebView2.WinForms.dll',
    'D:\\Eagleies '

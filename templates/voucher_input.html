@@ -6,6 +6,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
   <style>
+    body {
+      background: url('{{ bg_url }}') center/cover no-repeat fixed;
+    }
+    /* --- Zoom-Fade Transition Styles --- */
+    .page-transition {
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: white;
+      pointer-events: none;
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.5s cubic-bezier(.4,0,.2,1), transform 0.5s cubic-bezier(.4,0,.2,1);
+    }
+    .page-transition.hide {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+    .page-transition.show {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
     .keyboard-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
@@ -55,14 +79,63 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6" style="background: url('{{ bg_url|default('', true) }}') center/cover no-repeat fixed;">
-
+<body class="min-h-screen flex items-center justify-center p-6">
+  <div class="page-transition show" id="pageTransition"></div>
+  <script>
+    // Preload background image and remove overlay only after all content loaded + 0.5s delay
+    document.addEventListener('DOMContentLoaded', function() {
+      const transition = document.getElementById('pageTransition');
+      const bgUrl = '{{ bg_url }}';
+      // Set overlay background to match page bg
+      transition.style.backgroundImage = `url('${bgUrl}')`;
+      transition.style.backgroundSize = 'cover';
+      transition.style.backgroundPosition = 'center';
+      transition.style.backgroundRepeat = 'no-repeat';
+      transition.style.backgroundAttachment = 'fixed';
+      // Preload image
+      const img = new Image();
+      img.src = bgUrl;
+      img.onload = function() {
+        window.requestAnimationFrame(() => {
+          setTimeout(() => {
+            transition.classList.add('hide');
+            transition.classList.remove('show');
+          }, 500);
+        });
+      };
+      // If image fails to load, fallback to fade anyway after 1.5s
+      setTimeout(() => {
+        if (!transition.classList.contains('hide')) {
+          transition.classList.add('hide');
+          transition.classList.remove('show');
+        }
+      }, 1500);
+    });
+    // Add transition on navigation (for all links/buttons)
+    function transitionAndGo(url) {
+      const transition = document.getElementById('pageTransition');
+      transition.classList.remove('hide');
+      transition.classList.add('show');
+      setTimeout(() => {
+        window.location.href = url;
+      }, 400);
+    }
+    // Optional: Intercept all anchor clicks for smooth transition
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('a').forEach(function(a) {
+        if (a.target !== '_blank' && a.href && !a.href.startsWith('javascript:')) {
+          a.addEventListener('click', function(e) {
+            e.preventDefault();
+            transitionAndGo(a.href);
+          });
+        }
+      });
+    });
+  </script>
   <!-- Floating Back Button -->
   <a href="/" class="floating-back">&larr; Back</a>
-
   <div class="bg-white shadow-xl rounded-xl p-6 w-full max-w-8xl border text-center px-4 md:px-8">
     <h1 class="text-2xl font-bold text-indigo-600 mb-6">Masukkan Kode Voucher</h1>
-
     <!-- Input -->
     <form method="POST" action="{{ url_for('voucher.use_voucher', doc_id=doc_id) }}" class="mb-8 w-full">
       <div class="flex flex-col gap-4 w-full">
@@ -103,13 +176,9 @@
         </button>
       </div>
     </form>
-
-    
-
   <script>
     const input = document.getElementById("voucher_code");
     const keys = document.querySelectorAll(".keyboard-key");
-
     keys.forEach(key => {
       key.addEventListener("click", () => {
         const char = key.textContent;

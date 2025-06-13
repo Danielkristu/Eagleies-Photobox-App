@@ -6,15 +6,86 @@
   <title>PhotoBox - Home</title>
   <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
   <style>
-    .dynamic-bg {
-      background: url('{{ bg_url }}') center/cover no-repeat fixed;
+    body {
+      background: url('{{ bg_url }}?v={{ cache_buster }}') center/cover no-repeat fixed;
     }
-    .default-bg {
-      background: #f3f4f6;
+    /* --- Zoom-Fade Transition Styles --- */
+    .page-transition {
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: white;
+      pointer-events: none;
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.5s cubic-bezier(.4,0,.2,1), transform 0.5s cubic-bezier(.4,0,.2,1);
+    }
+    .page-transition.hide {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+    .page-transition.show {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
     }
   </style>
 </head>
 <body class="h-screen flex items-center justify-center p-6" {% if bg_url %}style="background: url('{{ bg_url }}') center/cover no-repeat fixed;"{% else %}style="background: #f3f4f6;"{% endif %}>
+
+  <div class="page-transition show" id="pageTransition"></div>
+  <script>
+    // Preload background image and remove overlay only after all content loaded + 0.5s delay
+    document.addEventListener('DOMContentLoaded', function() {
+      const transition = document.getElementById('pageTransition');
+      const bgUrl = `{{ bg_url }}?v={{ cache_buster }}`;
+      // Set overlay background to match page bg
+      transition.style.backgroundImage = `url('${bgUrl}')`;
+      transition.style.backgroundSize = 'cover';
+      transition.style.backgroundPosition = 'center';
+      transition.style.backgroundRepeat = 'no-repeat';
+      transition.style.backgroundAttachment = 'fixed';
+      // Preload image
+      const img = new Image();
+      img.src = bgUrl;
+      img.onload = function() {
+        window.requestAnimationFrame(() => {
+          setTimeout(() => {
+            transition.classList.add('hide');
+            transition.classList.remove('show');
+          }, 500);
+        });
+      };
+      // If image fails to load, fallback to fade anyway after 1.5s
+      setTimeout(() => {
+        if (!transition.classList.contains('hide')) {
+          transition.classList.add('hide');
+          transition.classList.remove('show');
+        }
+      }, 1500);
+    });
+    // Add transition on navigation (for all links/buttons)
+    function transitionAndGo(url) {
+      const transition = document.getElementById('pageTransition');
+      transition.classList.remove('hide');
+      transition.classList.add('show');
+      setTimeout(() => {
+        window.location.href = url;
+      }, 400);
+    }
+    // Optional: Intercept all anchor clicks for smooth transition
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('a').forEach(function(a) {
+        if (a.target !== '_blank' && a.href && !a.href.startsWith('javascript:')) {
+          a.addEventListener('click', function(e) {
+            e.preventDefault();
+            transitionAndGo(a.href);
+          });
+        }
+      });
+    });
+  </script>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto w-full max-w-4xl">
     
@@ -94,9 +165,23 @@
     }
 
     function goToQris() {
-      // ✅ CORRECT: URL now points to the correct blueprint route
-      window.location.href = `{{ url_for('payment.payment_qris') }}`;
+      // Add transition effect before navigating
+      const transition = document.getElementById('pageTransition');
+      transition.classList.remove('hide');
+      transition.classList.add('show');
+      setTimeout(() => {
+        window.location.href = `{{ url_for('payment.payment_qris') }}`;
+      }, 400); // match transition duration
     }
+
+    // Animate overlay out on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const transition = document.getElementById('pageTransition');
+      setTimeout(() => {
+        transition.classList.add('hide');
+        transition.classList.remove('show');
+      }, 50);
+    });
   </script>
 </body>
 </html>

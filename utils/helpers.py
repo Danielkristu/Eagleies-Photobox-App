@@ -4,6 +4,7 @@ import base64
 import requests
 import logging
 import sys
+import shutil
 # Always set GOOGLE_APPLICATION_CREDENTIALS to the root of the bundle, not utils/
 base_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
@@ -162,3 +163,80 @@ def load_config(session):
 def get_device_mac():
     """Gets the primary MAC address of the device."""
     return get_mac_address() or "unknown_mac"
+
+VOUCHER_BG_CACHE_PATH = os.path.join("static", "bg_cache", "voucher_bg.jpg")
+VOUCHER_BG_URL_PATH = os.path.join("static", "bg_cache", "last_voucher_bg_url.txt")
+
+def download_and_replace_voucher_bg(bg_url):
+    """
+    Download and cache the voucher background image locally if the URL has changed.
+    """
+    if not bg_url:
+        return
+    # Check if the last URL is the same
+    last_url = None
+    if os.path.exists(VOUCHER_BG_URL_PATH):
+        with open(VOUCHER_BG_URL_PATH, "r", encoding="utf-8") as f:
+            last_url = f.read().strip()
+    if last_url == bg_url and os.path.exists(VOUCHER_BG_CACHE_PATH):
+        return  # Already cached
+    # Download and replace
+    try:
+        resp = requests.get(bg_url, timeout=10)
+        if resp.status_code == 200:
+            with open(VOUCHER_BG_CACHE_PATH, "wb") as f:
+                f.write(resp.content)
+            with open(VOUCHER_BG_URL_PATH, "w", encoding="utf-8") as f:
+                f.write(bg_url)
+    except Exception as e:
+        logging.error(f"Failed to download voucher background: {e}")
+
+QRIS_BG_CACHE_PATH = os.path.join("static", "bg_cache", "qris_bg.jpg")
+QRIS_BG_URL_PATH = os.path.join("static", "bg_cache", "last_qris_bg_url.txt")
+
+def download_and_replace_qris_bg(bg_url):
+    """
+    Download and cache the QRIS background image locally if the URL has changed.
+    """
+    if not bg_url:
+        return
+    last_url = None
+    if os.path.exists(QRIS_BG_URL_PATH):
+        with open(QRIS_BG_URL_PATH, "r", encoding="utf-8") as f:
+            last_url = f.read().strip()
+    if last_url == bg_url and os.path.exists(QRIS_BG_CACHE_PATH):
+        return  # Already cached
+    try:
+        resp = requests.get(bg_url, timeout=10)
+        if resp.status_code == 200:
+            with open(QRIS_BG_CACHE_PATH, "wb") as f:
+                f.write(resp.content)
+            with open(QRIS_BG_URL_PATH, "w", encoding="utf-8") as f:
+                f.write(bg_url)
+    except Exception as e:
+        logging.error(f"Failed to download QRIS background: {e}")
+
+HOME_BG_CACHE_PATH = os.path.join("static", "bg_cache", "home_bg.jpg")
+HOME_BG_URL_PATH = os.path.join("static", "bg_cache", "last_home_bg_url.txt")
+
+def download_and_replace_home_bg(bg_url):
+    """
+    Download and cache the home background image locally if the URL has changed.
+    """
+    if not bg_url:
+        return
+    last_url = None
+    if os.path.exists(HOME_BG_URL_PATH):
+        with open(HOME_BG_URL_PATH, "r", encoding="utf-8") as f:
+            last_url = f.read().strip()
+    if last_url == bg_url and os.path.exists(HOME_BG_CACHE_PATH):
+        return  # Already cached
+    try:
+        resp = requests.get(bg_url, timeout=10)
+        if resp.status_code == 200:
+            with open(HOME_BG_CACHE_PATH, "wb") as f:
+                f.write(resp.content)
+            with open(HOME_BG_URL_PATH, "w", encoding="utf-8") as f:
+                f.write(bg_url)
+    except Exception as e:
+        logging.error(f"Failed to download Home background: {e}")

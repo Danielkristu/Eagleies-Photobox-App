@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, session, request, jsonify, flash
-from utils.helpers import db_fs
+from utils.helpers import db_fs, download_and_replace_home_bg
 import time
 import pyautogui
 
@@ -23,7 +23,16 @@ def photobox_home(doc_id):
         return redirect("/activate")
 
     session["activation_id"] = doc_id
-    return render_template("index.html", doc_id=doc_id)
+    # Fetch homeBg from Firestore
+    bg_url = None
+    doc_bg = db_fs.collection('Photobox').document(doc_id).collection('backgrounds').document('homeBg').get()
+    if doc_bg.exists:
+        bg_url = doc_bg.to_dict().get('url')
+        download_and_replace_home_bg(bg_url)
+    local_bg_path = '/static/bg_cache/home_bg.jpg' if bg_url else ''
+    import time
+    cache_buster = int(time.time())
+    return render_template("index.html", doc_id=doc_id, bg_url=local_bg_path, cache_buster=cache_buster)
 
 
 @client_bp.route("/<doc_id>/session_end")
