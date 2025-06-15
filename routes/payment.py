@@ -130,6 +130,7 @@ def start_payment_qris():
     # Build payload
     data = {
         "reference_id": reference_id,
+        "external_id": booth_id,  # Add booth_id as external_id
         "type": qris_type,
         "currency": currency,
         "amount": amount,
@@ -177,7 +178,15 @@ def check_qr_status(qr_id):
     response = client.get(f"https://api.xendit.co/qr_codes/{qr_id}")
 
     if response.status_code == 200:
-        return jsonify(response.json())
+        qr_data = response.json()
+        booth_id = session.get('booth_id')
+        # Check if external_id or booth_id in QR matches the host
+        if booth_id and (
+            qr_data.get('external_id') == booth_id or
+            qr_data.get('booth_id') == booth_id
+        ):
+            return jsonify({"status": "payment succeed", "qr": qr_data})
+        return jsonify(qr_data)
     return jsonify({"error": "Failed to check QRIS status"}), 500
 
 # --- Other Shared Routes ---
