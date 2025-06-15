@@ -108,24 +108,63 @@ def payment_qris():
 
 @payment_bp.route("/start_payment_qris", methods=["POST"])
 def start_payment_qris():
-    """Creates a new QRIS payment request via Xendit."""
+    """Creates a new QRIS payment request via Xendit (latest API version)."""
     config = get_booth_config()
     if not config:
         return jsonify({"error": "Unauthorized"}), 401
 
     settings = config.get('settings', {})
-    data = {
-        "external_id": f"photobox-qris-{uuid.uuid4()}",
-        "type": "DYNAMIC",
-        "amount": settings.get('price', 10000),
-        "callback_url": settings.get("callback_url") # Ensure this is configured in your DB
-    }
-    client = get_xendit_client(config)
-    response = client.post("https://api.xendit.co/qr_codes", json=data)
+    booth_id = session.get('booth_id')
+    # Required fields
+    reference_id = f"photobox-qris-{uuid.uuid4()}"
+    amount = settings.get('price', 10000)
+    currency = settings.get('currency', 'IDR')
+    qris_type = settings.get('qris_type', 'DYNAMIC')  # DYNAMIC or STATIC
+    # Optional fields
+    expires_at = settings.get('qris_expires_at')  # ISO 8601 string or None
+    channel_code = settings.get('qris_channel_code')  # e.g. 'ID_DANA', 'ID_LINKAJA', 'QRPH'
+    basket = settings.get('qris_basket')  # Optional: list of items
+    metadata = settings.get('qris_metadata')  # Optional: dict
+    webhook_url = settings.get('qris_webhook_url')  # Optional: override default callback
 
-    if response.status_code == 200:
+    # Build payload
+    data = {
+        "reference_id": reference_id,
+        "type": qris_type,
+        "currency": currency,
+        "amount": amount,
+    }
+    if expires_at:
+        data["expires_at"] = expires_at
+    if channel_code:
+        data["channel_code"] = channel_code
+    if basket:
+        data["basket"] = basket
+    if metadata:
+        data["metadata"] = metadata
+    # Use webhook_url if set, else fallback to callback_url in settings
+    if webhook_url:
+        data["webhook_url"] = webhook_url
+    elif settings.get("callback_url"):
+        data["webhook_url"] = settings["callback_url"]
+    # Prepare headers
+    headers = {"api-version": "2022-07-31", "Content-Type": "application/json"}
+    # Debug: Log config, payload, and headers (mask API key)
+    safe_config = dict(config)
+    if 'xendit_api_key' in safe_config:
+        safe_config['xendit_api_key'] = '***MASKED***'
+    print(f"[QRIS] Using config: {safe_config}")
+    print(f"[QRIS] Payload: {data}")
+    print(f"[QRIS] Headers: {headers}")
+
+    client = get_xendit_client(config)
+    response = client.post("https://api.xendit.co/qr_codes", json=data, headers=headers)
+
+    if response.status_code in (200, 201):
         return jsonify(response.json())
-    return jsonify({"error": "Failed to create QRIS code"}), 500
+    # Log the error response from Xendit
+    print(f"[QRIS] Xendit error response: {response.status_code} {response.text}")
+    return jsonify({"error": "Failed to create QRIS code", "details": response.text}), 500
 
 @payment_bp.route("/check_qr_status/<qr_id>")
 def check_qr_status(qr_id):

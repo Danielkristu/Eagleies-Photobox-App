@@ -16,7 +16,6 @@ from routes import register_routes
 import waitress
 
 from routes.auth import auth_bp
-from routes.activate import activate_bp
 from routes.dashboard import dashboard_bp
 from routes.client import client_bp
 from routes.payment import payment_bp

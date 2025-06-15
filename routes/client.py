@@ -12,15 +12,7 @@ photobooth_session_state = "running"
 
 @client_bp.route("/<doc_id>")
 def photobox_home(doc_id):
-    doc = db_fs.collection("Photobox").document(doc_id).get()
-    if not doc.exists:
-        flash("Activation code tidak ditemukan.", "error")
-        return redirect("/activate")
-
-    app_state = db_fs.collection("app_state").document(doc_id).get()
-    if not app_state.exists or not app_state.to_dict().get("is_activated", False):
-        flash("Aplikasi belum diaktivasi.", "error")
-        return redirect("/activate")
+    
 
     session["activation_id"] = doc_id
     # Fetch homeBg from Firestore

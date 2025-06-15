@@ -37,6 +37,7 @@ def get_booth_config():
         client_id = session['client_id']
         booth_id = session['booth_id']
         logging.info(f"GET_CONFIG: Attempting to fetch config for ClientID: {client_id}, BoothID: {booth_id}")
+        print(f"[DEBUG] get_booth_config: client_id={client_id}, booth_id={booth_id}")
         
         # 1. Fetch the main booth document
         booth_doc_ref = db_fs.collection('Clients').document(client_id).collection('Booths').document(booth_id)
@@ -48,30 +49,39 @@ def get_booth_config():
         
         booth_data = booth_doc.to_dict()
         logging.info(f"✅ GET_CONFIG: Found main booth document.")
+        print(f"[DEBUG] booth_data after fetch: {booth_data}")
 
+        settings_field_merged = False
         # 2. Merge 'settings' field if present in booth document
+        if 'settings' in booth_data:
+            print(f"[DEBUG] settings field type: {type(booth_data['settings'])}, value: {booth_data['settings']}")
         if 'settings' in booth_data and isinstance(booth_data['settings'], dict):
             booth_data.update(booth_data['settings'])
             logging.info(f"✅ GET_CONFIG: Merged 'settings' field from booth document.")
             del booth_data['settings']
+            settings_field_merged = True
 
         # 3. Fetch the settings from the subcollection
         settings_collection_ref = booth_doc_ref.collection('settings')
         settings_docs = list(settings_collection_ref.limit(1).stream())
-
+        settings_subcol_merged = False
         if settings_docs:
             settings_data = settings_docs[0].to_dict()
             logging.info(f"✅ GET_CONFIG: Found settings document in subcollection.")
-            # Merge the dictionaries, giving preference to keys in settings_data
             booth_data.update(settings_data)
-        else:
-            logging.warning(f"⚠️ GET_CONFIG: No settings document found in the 'settings' subcollection for BoothID: {booth_id}. API keys might be missing.")
+            settings_subcol_merged = True
+
+        if not settings_field_merged and not settings_subcol_merged:
+            logging.warning(f"⚠️ GET_CONFIG: No settings found in either the 'settings' field or subcollection for BoothID: {booth_id}. API keys might be missing.")
 
         # 4. Fetch and merge parent client document fields (e.g., xendit_api_key)
         client_doc_ref = db_fs.collection('Clients').document(client_id)
         client_doc = client_doc_ref.get()
         if client_doc.exists:
             client_data = client_doc.to_dict()
+            # Always take xendit_api_key from parent client doc only
+            if 'xendit_api_key' in client_data:
+                booth_data['xendit_api_key'] = client_data['xendit_api_key']
             for k, v in client_data.items():
                 if k not in booth_data:
                     booth_data[k] = v
@@ -79,10 +89,21 @@ def get_booth_config():
         else:
             logging.warning(f"⚠️ GET_CONFIG: Parent client document not found for ClientID: {client_id}.")
 
+        # Log the xendit_api_key for debug
+        api_key = booth_data.get('xendit_api_key')
+        print(f"[DEBUG] booth_data after all merging: {booth_data}")
+        if api_key:
+            logging.info(f"[GET_CONFIG] xendit_api_key found: {api_key}")
+            print(f"[GET_CONFIG] xendit_api_key found: {api_key}")
+        else:
+            logging.warning(f"[GET_CONFIG] xendit_api_key is missing in merged config!")
+            print(f"[GET_CONFIG] xendit_api_key is missing in merged config!")
+
         return booth_data
 
     except Exception as e:
         logging.error(f"❌ GET_CONFIG: An exception occurred: {e}")
+        print(f"[EXCEPTION] GET_CONFIG: {e}")
         return None
 
 # --- Xendit API Helper with Detailed Logging ---
@@ -122,20 +143,60 @@ def get_xendit_client(config):
 def get_config_for_webhook(booth_id):
     """
     Fetches a booth's configuration using only the booth_id.
+    Merges booth doc, 'settings' field, 'settings' subcollection, and parent client doc fields (e.g., xendit_api_key).
     This is intended for stateless calls like webhooks.
     """
     if not booth_id or not db_fs:
         return None
     
-    # This query iterates through all clients to find the booth.
     client_docs = db_fs.collection('Clients').stream()
     for client in client_docs:
         doc_ref = client.reference.collection('Booths').document(booth_id)
         doc = doc_ref.get()
         if doc.exists:
             logging.info(f"Webhook found config for booth {booth_id} under client {client.id}")
-            return doc.to_dict()
-            
+            booth_data = doc.to_dict()
+            print(f"[DEBUG] get_config_for_webhook: booth_id={booth_id}, client_id={client.id}")
+            print(f"[DEBUG] booth_data after fetch: {booth_data}")
+            settings_field_merged = False
+            if 'settings' in booth_data:
+                print(f"[DEBUG] settings field type: {type(booth_data['settings'])}, value: {booth_data['settings']}")
+            if 'settings' in booth_data and isinstance(booth_data['settings'], dict):
+                booth_data.update(booth_data['settings'])
+                logging.info(f"Webhook: merged 'settings' field from booth doc.")
+                del booth_data['settings']
+                settings_field_merged = True
+            settings_collection_ref = doc_ref.collection('settings')
+            settings_docs = list(settings_collection_ref.limit(1).stream())
+            settings_subcol_merged = False
+            if settings_docs:
+                settings_data = settings_docs[0].to_dict()
+                booth_data.update(settings_data)
+                logging.info(f"Webhook: merged settings subcollection doc.")
+                settings_subcol_merged = True
+            if not settings_field_merged and not settings_subcol_merged:
+                logging.warning(f"Webhook: No settings found in either the 'settings' field or subcollection for BoothID: {booth_id}. API keys might be missing.")
+            client_doc = client.reference.get()
+            if client_doc.exists:
+                client_data = client_doc.to_dict()
+                for k, v in client_data.items():
+                    if k not in booth_data:
+                        booth_data[k] = v
+                logging.info(f"Webhook: merged parent client doc fields.")
+            # Special logic: always use parent client xendit_api_key if booth_data is missing or empty
+            parent_api_key = client_data.get('xendit_api_key')
+            booth_api_key = booth_data.get('xendit_api_key')
+            if parent_api_key and (not booth_api_key or not isinstance(booth_api_key, str) or not booth_api_key.strip()):
+                booth_data['xendit_api_key'] = parent_api_key
+            api_key = booth_data.get('xendit_api_key')
+            print(f"[DEBUG] booth_data after all merging: {booth_data}")
+            if api_key:
+                print(f"[WEBHOOK CONFIG] xendit_api_key found: {api_key}")
+                logging.info(f"[WEBHOOK CONFIG] xendit_api_key found: {api_key}")
+            else:
+                print(f"[WEBHOOK CONFIG] xendit_api_key is missing in merged config!")
+                logging.warning(f"[WEBHOOK CONFIG] xendit_api_key is missing in merged config!")
+            return booth_data
     logging.warning(f"Webhook could not find any config for booth_id: {booth_id}")
     return None
 
