@@ -23,7 +23,7 @@
       font-family: Impact, Arial, sans-serif;
       font-size: 2.2rem;
       color: #000;
-      font-weight: bold;
+      font-weight: normal;
       letter-spacing: 0.04em;
       text-align: left;
       margin-top: 3.5rem;
@@ -55,7 +55,7 @@
       font-family: Impact, Arial, sans-serif;
       font-size: 5rem;
       color: #fff;
-      font-weight: reguler;
+      font-weight: normal;
       letter-spacing: 0.04em;
       margin-bottom: 0.2rem;
       text-align: center;
@@ -111,12 +111,12 @@
       color: #fff;
       border: none;
       border-radius: 1.2rem;
-      width: 64px;
-      height: 64px;
+      width: 90px;
+      height: 90px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.2rem;
+      font-size: 3.2rem;
       font-weight: bold;
       box-shadow: 0 2px 8px rgba(0,0,0,0.10);
       cursor: pointer;
@@ -131,8 +131,8 @@
       fill: #e80000;
     }
     .qris-back-btn svg {
-      width: 32px;
-      height: 32px;
+      width: 48px;
+      height: 48px;
       display: block;
     }
     @media (max-width: 600px) {
@@ -188,9 +188,9 @@
       </svg>
     </div>
   </div>
-  <button class="qris-back-btn" onclick="transitionAndGo(config.homeUrl)">
-    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="48" height="48" rx="12" fill="#d32b1a"/>
+  <button class="qris-back-btn" onclick="transitionAndGo(config.homeUrl)" style="position: fixed; left: 2vw; bottom: 2vw; background: #e80000; color: #fff; border: none; border-radius: 1.2rem; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; font-size: 3.2rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.10); z-index: 100; transition: background 0.2s; padding: 0;">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; display: block;">
+      <rect width="48" height="48" rx="12" fill="#e80000"/>
       <path d="M30 36L18 24L30 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </button>

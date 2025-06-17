@@ -88,28 +88,28 @@
     }
     .back-btn {
       position: fixed;
-      left: 2.2rem;
-      bottom: 2.2rem;
-      width: 70px;
-      height: 70px;
+      left: 2vw;
+      bottom: 2vw;
+      width: 90px;
+      height: 90px;
       background: #e80000;
-      border-radius: 18px;
+      border: none;
+      border-radius: 1.2rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      font-size: 3.2rem;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
       cursor: pointer;
-      z-index: 50;
-      border: none;
-      transition: background 0.15s, transform 0.15s;
+      z-index: 100;
+      transition: background 0.2s;
+      padding: 0;
     }
-    .back-btn:active, .back-btn:hover {
-      background: #b80000;
-      transform: scale(1.05);
     }
     .back-btn svg {
-      width: 2.2rem;
-      height: 2.2rem;
+      width: 48px;
+      height: 48px;
       fill: none;
       stroke: #fff;
       stroke-width: 5;
@@ -150,7 +150,7 @@
 <body>
   <!-- JELLYPOP LOGO & TITLE -->
   <div style="position: absolute; top: 48px; left: 64px; z-index: 10; display: flex; align-items: center;">
-    <span style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 48px; color: #000; letter-spacing: 1px; font-weight: bold;">JELLYPOP<span style="color: #e80000;">.</span></span>
+    <span style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 48px; color: #000; letter-spacing: 1px; font-weight: normal;">JELLYPOP<span style="color: #e80000;">.</span></span>
   </div>
 
   <!-- MAIN CONTENT -->
@@ -167,10 +167,10 @@
   </div>
 
   <!-- BACK BUTTON -->
-  <button onclick="window.location.href='/start'" style="position: fixed; left: 48px; bottom: 48px; background: #e80000; border-radius: 18px; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center; z-index: 50; border: none; box-shadow: 0 2px 8px #0002;">
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="44" height="44" rx="12" fill="none"/>
-      <path d="M28 34L16 22L28 10" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <button onclick="window.location.href='/start'" class="back-btn" style="position: fixed; left: 2vw; bottom: 2vw; background: #e80000; color: #fff; border: none; border-radius: 1.2rem; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; font-size: 3.2rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.10); z-index: 100; transition: background 0.2s; padding: 0;">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; display: block;">
+      <rect width="48" height="48" rx="12" fill="#e80000"/>
+      <path d="M30 36L18 24L30 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </button>
 
