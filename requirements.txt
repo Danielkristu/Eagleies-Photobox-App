@@ -3,3 +3,8 @@ flask-cors
 google-cloud-firestore
 python-dotenv
 gunicorn
+requests
+getmac
+pyautogui
+pygetwindow
+pywebview
