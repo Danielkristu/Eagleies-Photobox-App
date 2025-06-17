@@ -8,12 +8,146 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
+    /* --- Remove old card styles and add new layout styles --- */
     body {
       background-image: url('{{ bg_url }}?v={{ cache_buster }}');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: fixed;
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Montserrat', Arial, sans-serif;
+    }
+    .logo-jellypop {
+      font-family: Impact, Arial, sans-serif;
+      font-size: 2.2rem;
+      color: #000;
+      font-weight: bold;
+      letter-spacing: 0.04em;
+      text-align: left;
+      margin-top: 3.5rem;
+      margin-left: 7vw;
+      margin-bottom: 2.5rem;
+      user-select: none;
+    }
+    .logo-jellypop .dot {
+      color: #e80000;
+    }
+    .qris-card {
+      background: #e80000;
+      border-radius: 2.2rem;
+      max-width: 480px;
+      width: 90vw;
+      /* Center the card vertically and horizontally */
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem 2.5rem 1.5rem;
+      box-sizing: border-box;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+    }
+    .qris-title {
+      font-family: Impact, Arial, sans-serif;
+      font-size: 5rem;
+      color: #fff;
+      font-weight: reguler;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.2rem;
+      text-align: center;
+
+      user-select: none;
+    }
+    .qris-qr-bg {
+      background: #f7f7f7;
+      border-radius: 1.2rem;
+      border: 6px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto 0.5rem auto;
+      box-sizing: border-box;
+    }
+    .qris-qr-bg canvas {
+      width: 220px !important;
+      height: 220px !important;
+      background: #f7d154;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .qris-amount {
+      color: #fff;
+      font-family: Impact, Arial, sans-serif;
+      font-size: 2.1rem;
+      font-weight: reguler;
+      margin-top: 1.2rem;
+      margin-bottom: 0.2rem;
+      letter-spacing: 0.02em;
+      text-align: center;
+      user-select: none;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .qris-timer {
+      color: #fff;
+      font-family: Impact, Arial, sans-serif;
+      font-size: 1.3rem;
+      font-weight: reguler;
+      margin-top: 0.2rem;
+      text-align: center;
+      letter-spacing: 0.02em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .qris-back-btn {
+      position: fixed;
+      left: 2vw;
+      bottom: 2vw;
+      background: #e80000;
+      color: #fff;
+      border: none;
+      border-radius: 1.2rem;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      cursor: pointer;
+      z-index: 100;
+      transition: background 0.2s;
+      padding: 0;
+    }
+    .qris-back-btn:active, .qris-back-btn:focus {
+      background: #e80000;
+    }
+    .qris-back-btn svg rect {
+      fill: #e80000;
+    }
+    .qris-back-btn svg {
+      width: 32px;
+      height: 32px;
+      display: block;
+    }
+    @media (max-width: 600px) {
+      .logo-jellypop { font-size: 1.3rem; margin-top: 1.2rem; }
+      .qris-card {
+        padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+        max-width: 98vw;
+        width: 98vw;
+      }
+      .qris-title { font-size: 4rem; }
+      .qris-qr-bg { width: 200px; height: 200px; }
+      .qris-qr-bg canvas { width: 120px !important; height: 120px !important; }
+      .qris-amount { font-size: 1.2rem; }
+      .qris-back-btn { width: 48px; height: 48px; font-size: 1.2rem; }
+      .qris-back-btn svg { width: 24px; height: 24px; }
     }
     /* --- Zoom-Fade Transition Styles --- */
     .page-transition {
@@ -38,7 +172,28 @@
     }
   </style>
 </head>
-<body id="main-body" class="flex flex-col items-center justify-center min-h-screen transition-colors duration-500">
+<body>
+  <div class="logo-jellypop">JELLYPOP<span class="dot">.</span></div>
+  <div class="qris-card">
+    <div class="qris-title">SCAN ME</div>
+    <div class="qris-qr-bg">
+      <canvas id="qrImage"></canvas>
+    </div>
+    <div class="qris-amount" id="priceArea"></div>
+    <div id="timer" class="qris-timer" style="color:#fff; font-family: Impact, Arial, sans-serif; font-size: 1.3rem; font-weight: reguler; margin-top: 0.2rem; text-align: center; letter-spacing: 0.02em; text-shadow: 0 2px 8px rgba(0,0,0,0.08);"></div>
+    <div id="loading" class="mt-4 hidden">
+      <svg class="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+    </div>
+  </div>
+  <button class="qris-back-btn" onclick="transitionAndGo(config.homeUrl)">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="12" fill="#d32b1a"/>
+      <path d="M30 36L18 24L30 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
   <div class="page-transition show" id="pageTransition"></div>
   <script>
     // Preload background image and remove overlay only after all content loaded + 0.5s delay
@@ -71,22 +226,6 @@
       }, 1500);
     });
   </script>
-  <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-    <h1 class="text-3xl font-bold mb-4 text-indigo-600">Bayar via QRIS</h1>
-    <p class="text-gray-600 mb-4">Silakan scan QRIS di bawah ini</p>
-
-    <canvas id="qrImage" class="w-64 h-64 mx-auto mb-6"></canvas>
-    <div id="priceArea" class="text-xl font-semibold text-gray-700 mb-4"></div>
-    <div id="timer" class="text-sm text-gray-500 mb-4"></div>
-
-    <div id="loading" class="mt-4 hidden">
-      <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-      </svg>
-      <p class="text-xs text-gray-500 mt-2">Menunggu pembayaran...</p>
-    </div>
-  </div>
   
   <!-- ✅ FIXED: Storing server-rendered URLs in data attributes to avoid JS SyntaxErrors -->
   <div id="js-config"
@@ -102,7 +241,7 @@
     let qrId = null;
     let statusChecker = null;
     let countdownInterval = null;
-    let remainingTime = 180; // 3 menit timeout
+    let remainingTime = 30; // 3 menit timeout
   </script>
   <script>
     // price_per_session is passed directly from the Python route
@@ -112,14 +251,14 @@
       fetch(config.startQrisUrl, { method: "POST" })
         .then(res => res.json())
         .then(data => {
-          if (data.qr_string && data.id) { // Xendit uses 'id' for QRIS
+          if (data.qr_string && data.id) {
             qrId = data.id;
             new QRious({
               element: document.getElementById('qrImage'),
               value: data.qr_string,
               size: 300
             });
-            document.getElementById('priceArea').innerText = "Total: Rp " + price.toLocaleString('id-ID');
+            document.getElementById('priceArea').innerText = "Rp " + price.toLocaleString('id-ID');
             document.getElementById('loading').classList.remove('hidden');
             statusChecker = setInterval(checkQrStatus, 4000);
             countdownInterval = setInterval(updateCountdown, 1000);

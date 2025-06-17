@@ -15,13 +15,20 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-start" id="dynamic-bg" style="{% if bg_url %}background: url('{{ bg_url }}') center/cover no-repeat fixed;{% else %}background: linear-gradient(to bottom right, #e0e7ff, #fff);{% endif %}">
-    <div style="height: 66vh;"></div>
-    <button id="start-btn" class="mx-auto block px-12 py-2 bg-white text-black text-2xl font-bold rounded-xl shadow-lg border-2 border-black hover:bg-gray-100 hover:shadow-2xl transition">Start</button>
-    <script>
-        document.getElementById('start-btn').onclick = function() {
-            window.location.href = '/'; // Change to your next page route
-        };
-    </script>
+<body style="min-height: 100vh; background: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100vw;">
+    <div style="height: 23vh;"></div>
+    <div style="font-size: 2rem; color: #000; text-align: center; margin-bottom: 0.5rem; font-family: 'Montserrat', Arial, sans-serif;">Welcome to</div>
+    <div style="font-family: Impact, Arial, sans-serif; font-size: 8rem; font-weight: normal; color: #000; letter-spacing: 2px; text-align: center; line-height: 1;">
+      JELLYPOP<span style="color: #e80000;">.</span>
+    </div>
+    <div style="font-size: 1.7rem; color: #000; text-align: center; margin-top: 0.5rem; font-family: 'Montserrat', Arial, sans-serif; margin-bottom: 3.5rem;">Drop a pose, steal the crowd!</div>
+    <button id="start-btn" style="margin-top: 1.5rem; font-family: Impact, Arial, sans-serif; font-size: 4rem; font-weight: reguler; background: #e80000; color: #fff; border: none; border-radius: 2.2rem; padding: 0.15em 1.2em; min-width: 120px; box-shadow: 0 2px 8px #0001; cursor: pointer; transition: background 0.15s; display: block; letter-spacing: 2px;">POP!</button>
+  </div>
+  <script>
+    document.getElementById('start-btn').onclick = function() {
+      window.location.href = '/';
+    };
+  </script>
 </body>
 </html>

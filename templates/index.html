@@ -6,47 +6,218 @@
   <title>PhotoBox - Home</title>
   <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'Impact';
+      src: local('Impact'), url('https://fonts.cdnfonts.com/s/14652/Impact.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
     body {
+      font-family: 'Impact', Impact, Charcoal, sans-serif !important;
       background: url('{{ bg_url }}?v={{ cache_buster }}') center/cover no-repeat fixed;
+      margin: 0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
     }
-    /* --- Zoom-Fade Transition Styles --- */
-    .page-transition {
+    .logo-jellypop {
+      font-family: 'Impact', Impact, Charcoal, sans-serif;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #000;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      margin-top: 2.5rem;
+      margin-left: 2.5rem;
+      user-select: none;
+    }
+    .logo-dot {
+      color: #e80000;
+      font-size: 2.5rem;
+      margin-left: 2px;
+      font-family: inherit;
+    }
+    .main-title {
+      font-family: 'Impact', Impact, Charcoal, sans-serif;
+      font-size: 5vw;
+      font-weight: bold;
+      color: #000;
+      text-align: center;
+      margin-top: 8vh;
+      margin-bottom: 6vh;
+      line-height: 0.95;
+      letter-spacing: 1px;
+    }
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.2rem;
+      margin-top: 2vh;
+    }
+    .btn-home {
+      font-family: 'Impact', Impact, Charcoal, sans-serif;
+      font-size: 2.5rem;
+      border: none;
+      border-radius: 1.2rem;
+      padding: 0.7em 2.5em;
+      min-width: 270px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      outline: none;
+      margin-bottom: 0.2em;
+    }
+    .btn-qris {
+      background: #e80000;
+      color: #fff;
+      margin-bottom: 0.7em;
+    }
+    .btn-qris:active, .btn-qris:hover {
+      background: #b80000;
+      transform: scale(1.04);
+    }
+    .btn-voucher {
+      background: #3a3a3a;
+      color: #fff;
+    }
+    .btn-voucher:active, .btn-voucher:hover {
+      background: #000;
+      transform: scale(1.04);
+    }
+    .back-btn {
       position: fixed;
-      z-index: 9999;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: white;
-      pointer-events: none;
-      opacity: 1;
-      transform: scale(1);
-      transition: opacity 0.5s cubic-bezier(.4,0,.2,1), transform 0.5s cubic-bezier(.4,0,.2,1);
+      left: 2.2rem;
+      bottom: 2.2rem;
+      width: 70px;
+      height: 70px;
+      background: #e80000;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      cursor: pointer;
+      z-index: 50;
+      border: none;
+      transition: background 0.15s, transform 0.15s;
     }
-    .page-transition.hide {
-      opacity: 0;
+    .back-btn:active, .back-btn:hover {
+      background: #b80000;
       transform: scale(1.05);
-      pointer-events: none;
     }
-    .page-transition.show {
-      opacity: 1;
-      transform: scale(1);
-      pointer-events: auto;
+    .back-btn svg {
+      width: 2.2rem;
+      height: 2.2rem;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      margin-left: 2px;
+    }
+    @media (max-width: 600px) {
+      .main-title {
+        font-size: 2.5rem;
+        margin-top: 4vh;
+        margin-bottom: 3vh;
+      }
+      .logo-jellypop {
+        font-size: 1.5rem;
+        margin-top: 1.2rem;
+        margin-left: 1.2rem;
+      }
+      .btn-home {
+        font-size: 1.3rem;
+        min-width: 160px;
+        padding: 0.6em 1.2em;
+      }
+      .back-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        left: 1rem;
+        bottom: 1rem;
+      }
+      .back-btn svg {
+        width: 1.2rem;
+        height: 1.2rem;
+      }
     }
   </style>
 </head>
-<body class="h-screen flex items-center justify-center p-6" {% if bg_url %}style="background: url('{{ bg_url }}') center/cover no-repeat fixed;"{% else %}style="background: #f3f4f6;"{% endif %}>
+<body>
+  <!-- JELLYPOP LOGO & TITLE -->
+  <div style="position: absolute; top: 48px; left: 64px; z-index: 10; display: flex; align-items: center;">
+    <span style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 48px; color: #000; letter-spacing: 1px; font-weight: bold;">JELLYPOP<span style="color: #e80000;">.</span></span>
+  </div>
 
-  <div class="page-transition show" id="pageTransition"></div>
+  <!-- MAIN CONTENT -->
+  <div style="display: flex; flex-direction: column; min-height: 100vh; width: 100vw;">
+    <!-- Title Section (left aligned) -->
+    <div style="padding-left: 64px; margin-top: 250px;">
+      <div style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 96px; color: #000; line-height: 0.95; font-weight: bold; letter-spacing: 2px; text-align: left;">CASHLESS<br>PAYMENT</div>
+    </div>
+    <!-- Button Section (centered) -->
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; margin-top: 120px;">
+      <button onclick="goToQris()" style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 56px; background: #e80000; color: #fff; border-radius: 24px; padding: 0 64px; height: 96px; min-width: 340px; box-shadow: 0 2px 8px #0001; border: none; margin-bottom: 16px; font-weight: reguler; letter-spacing: 1px;">QRIS</button>
+      <button onclick="window.location.href='{{ url_for('voucher.voucher_input', doc_id=doc_id) }}';" style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 40px; background: #000; color: #fff; border-radius: 18px; padding: 0 48px; height: 72px; min-width: 260px; box-shadow: 0 2px 8px #0001; border: none; font-weight: reguler; letter-spacing: 1px;">VOUCHER</button>
+    </div>
+  </div>
+
+  <!-- BACK BUTTON -->
+  <button onclick="window.location.href='/start'" style="position: fixed; left: 48px; bottom: 48px; background: #e80000; border-radius: 18px; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center; z-index: 50; border: none; box-shadow: 0 2px 8px #0002;">
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="44" height="44" rx="12" fill="none"/>
+      <path d="M28 34L16 22L28 10" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <!-- FONT: IMPACT -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Impact:wght@400&display=swap" onerror="this.onerror=null;this.href='';">
+  <style>
+    @font-face {
+      font-family: 'Impact';
+      src: local('Impact'), url('https://fonts.cdnfonts.com/s/14618/Impact.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+    }
+  </style>
+
   <script>
-    // Preload background image and remove overlay only after all content loaded + 0.5s delay
+    function goToQris() {
+      transitionAndGo(`{{ url_for('payment.payment_qris') }}`);
+    }
+    function goToVoucher() {
+      transitionAndGo(`{{ url_for('voucher.voucher_input', doc_id=doc_id) }}`);
+    }
+    function goBack() {
+      transitionAndGo('/'); // Or use window.history.back() if needed
+    }
+    // Page transition overlay logic (reuse from previous)
+    function transitionAndGo(url) {
+      let overlay = document.getElementById('pageTransition');
+      if (overlay) {
+        overlay.classList.remove('hide');
+        overlay.classList.add('show');
+        setTimeout(() => { window.location.href = url; }, 400);
+      } else {
+        window.location.href = url;
+      }
+    }
+  </script>
+  <!-- Page transition overlay (reuse if needed) -->
+  <div class="page-transition show" id="pageTransition" style="background: white;"></div>
+  <script>
     document.addEventListener('DOMContentLoaded', function() {
       const transition = document.getElementById('pageTransition');
       const bgUrl = `{{ bg_url }}?v={{ cache_buster }}`;
-      // Set overlay background to match page bg
       transition.style.backgroundImage = `url('${bgUrl}')`;
       transition.style.backgroundSize = 'cover';
       transition.style.backgroundPosition = 'center';
       transition.style.backgroundRepeat = 'no-repeat';
       transition.style.backgroundAttachment = 'fixed';
-      // Preload image
       const img = new Image();
       img.src = bgUrl;
       img.onload = function() {
@@ -57,130 +228,12 @@
           }, 500);
         });
       };
-      // If image fails to load, fallback to fade anyway after 1.5s
       setTimeout(() => {
         if (!transition.classList.contains('hide')) {
           transition.classList.add('hide');
           transition.classList.remove('show');
         }
       }, 1500);
-    });
-    // Add transition on navigation (for all links/buttons)
-    function transitionAndGo(url) {
-      const transition = document.getElementById('pageTransition');
-      transition.classList.remove('hide');
-      transition.classList.add('show');
-      setTimeout(() => {
-        window.location.href = url;
-      }, 400);
-    }
-    // Optional: Intercept all anchor clicks for smooth transition
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('a').forEach(function(a) {
-        if (a.target !== '_blank' && a.href && !a.href.startsWith('javascript:')) {
-          a.addEventListener('click', function(e) {
-            e.preventDefault();
-            transitionAndGo(a.href);
-          });
-        }
-      });
-    });
-  </script>
-
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto w-full max-w-4xl">
-    
-    <!-- Card 1: Invoice Payment -->
-    <div onclick="startPayment()" class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
-      <img src="https://cdn-icons-png.flaticon.com/512/992/992700.png" alt="Invoice Icon" class="w-24 mx-auto mb-8">
-      <h2 class="text-4xl font-bold text-indigo-600 mb-2">Bayar</h2>
-    </div>
-
-    <!-- Card 2: Direct QRIS -->
-    <div onclick="goToQris()" class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
-      <img src="https://cdn-icons-png.flaticon.com/512/1034/1034555.png" alt="QRIS Icon" class="w-24 mx-auto mb-8">
-      <h2 class="text-4xl font-bold text-green-600 mb-2">Pay</h2>
-    </div>
-
-    <!-- Card Voucher -->
-    <div onclick="window.location.href='{{ url_for('voucher.voucher_input', doc_id=doc_id) }}';" class="cursor-pointer bg-white p-8 rounded-xl justify-center text-center flex flex-col hover:shadow-xl hover:scale-105 transition duration-300 ease-in-out">
-      <img src="{{ url_for('static', filename='img/voucher-icon.png') }}" class="w-24 mx-auto mb-8" alt="Voucher">
-      <h2 class="text-4xl font-bold text-purple-600 mb-2">Pakai Voucher</h2>
-    </div>
-
-  </div>
-
-  <!-- Modal -->
-  <div id="paymentModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-50 rounded-2xl transition duration-700 ease-in-out">
-    <div class="bg-white p-6 shadow-lg w-full max-w-2xl relative rounded-lg">
-      <button onclick="closeModal()" class="absolute top-2 right-4 text-gray-400 hover:text-red-600 text-2xl">&times;</button>
-      <h2 class="text-2xl font-semibold text-center text-indigo-600 mb-4">Pembayaran</h2>
-      <iframe id="paymentFrame" class="w-full h-[600px] rounded-lg" frameborder="0"></iframe>
-    </div>
-  </div>
-
-  <!-- JS -->
-  <script>
-    let invoiceId = null;
-    let statusChecker = null;
-
-    function startPayment() {
-      // ✅ CORRECT: URL now points to the blueprint route without doc_id
-      fetch(`{{ url_for('payment.start_payment_invoice') }}`, { method: "POST" })
-        .then(res => res.json())
-        .then(data => {
-          if (data.invoice_url && data.invoice_id) {
-            invoiceId = data.invoice_id;
-            document.getElementById("paymentFrame").src = data.invoice_url;
-            document.getElementById("paymentModal").classList.remove("hidden");
-            document.getElementById("paymentModal").classList.add("flex");
-
-            statusChecker = setInterval(checkInvoiceStatus, 4000);
-          } else {
-            alert("Gagal membuat invoice.");
-          }
-        });
-    }
-
-    function checkInvoiceStatus() {
-      if (!invoiceId) return;
-      // ✅ CORRECT: URL is now constructed correctly
-      fetch(`{{ url_for('payment.check_invoice_status', invoice_id='INVOICE_ID_PLACEHOLDER') }}`.replace('INVOICE_ID_PLACEHOLDER', invoiceId))
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === "PAID") {
-            clearInterval(statusChecker);
-            // ✅ CORRECT: Redirects to the correct status page
-            window.location.href = `{{ url_for('payment.payment_status') }}`;
-          } else if (["EXPIRED", "FAILED"].includes(data.status)) {
-            clearInterval(statusChecker);
-            window.location.href = `{{ url_for('payment.payment_failed') }}`;
-          }
-        });
-    }
-
-    function closeModal() {
-      document.getElementById("paymentModal").classList.add("hidden");
-      document.getElementById("paymentFrame").src = "";
-      clearInterval(statusChecker);
-    }
-
-    function goToQris() {
-      // Add transition effect before navigating
-      const transition = document.getElementById('pageTransition');
-      transition.classList.remove('hide');
-      transition.classList.add('show');
-      setTimeout(() => {
-        window.location.href = `{{ url_for('payment.payment_qris') }}`;
-      }, 400); // match transition duration
-    }
-
-    // Animate overlay out on page load
-    window.addEventListener('DOMContentLoaded', () => {
-      const transition = document.getElementById('pageTransition');
-      setTimeout(() => {
-        transition.classList.add('hide');
-        transition.classList.remove('show');
-      }, 50);
     });
   </script>
 </body>
