@@ -115,14 +115,10 @@ def start_payment_qris():
 
     settings = config.get('settings', {})
     booth_id = session.get('booth_id')
-    # Debug: Print settings and price
-    print(f"[DEBUG] settings loaded in /start_payment_qris: {settings}")
-    print(f"[DEBUG] settings.get('price'): {settings.get('price')}")
-    # Required fields
-    reference_id = f"photobox-qris-{uuid.uuid4()}"
+    # Compose reference_id as Eagleies-QRIS-{booth_id}-{uuid}
+    reference_id = f"Eagleies-QRIS-{booth_id}-{uuid.uuid4()}"
     # Ensure amount is an integer and valid for Xendit
     price_raw = settings.get('price')
-    print(f"[DEBUG] Raw price from settings: {price_raw} (type: {type(price_raw)})")
     try:
         if price_raw is None:
             raise ValueError('Price is None')
@@ -130,9 +126,8 @@ def start_payment_qris():
             price_raw = price_raw.replace(',', '').replace(' ', '')
         amount = int(float(price_raw))
     except Exception as e:
-        print(f"[ERROR] Invalid price value in settings: {price_raw}, error: {e}")
+        logging.error(f"[QRIS] Invalid price value in settings: {price_raw}, error: {e}")
         amount = 12000
-    print(f"[DEBUG] amount used for QRIS (as int): {amount}")
     currency = settings.get('currency', 'IDR')
     qris_type = settings.get('qris_type', 'DYNAMIC')  # DYNAMIC or STATIC
     # Optional fields
@@ -169,9 +164,8 @@ def start_payment_qris():
     safe_config = dict(config)
     if 'xendit_api_key' in safe_config:
         safe_config['xendit_api_key'] = '***MASKED***'
-    print(f"[QRIS] Using config: {safe_config}")
-    print(f"[QRIS] Payload: {data}")
-    print(f"[QRIS] Headers: {headers}")
+    logging.info(f"[QRIS] Using config: {safe_config}")
+    logging.info(f"[QRIS] reference_id: {reference_id}, amount: {amount}, booth_id: {booth_id}")
 
     client = get_xendit_client(config)
     response = client.post("https://api.xendit.co/qr_codes", json=data, headers=headers)
@@ -179,7 +173,7 @@ def start_payment_qris():
     if response.status_code in (200, 201):
         return jsonify(response.json())
     # Log the error response from Xendit
-    print(f"[QRIS] Xendit error response: {response.status_code} {response.text}")
+    logging.error(f"[QRIS] Xendit error response: {response.status_code} {response.text}")
     return jsonify({"error": "Failed to create QRIS code", "details": response.text}), 500
 
 @payment_bp.route("/check_qr_status/<qr_id>")
@@ -222,23 +216,38 @@ def payment_failed():
 @payment_bp.route("/xendit_webhook", methods=["POST"])
 def xendit_webhook():
     try:
-        data = request.json
-        # Use only external_id from payload to identify the booth
-        booth_id = data.get("external_id")
+        payload = request.json
+        data = payload.get('data', {})
+        reference_id = data.get('reference_id')
+        status = data.get('status', '').upper()
+        # Only log reference_id and status, not full payload
+        logging.info(f"[WEBHOOK] Reference ID: {reference_id}, Status: {status}")
 
-        logging.info(f"[WEBHOOK] Received: {data}, Booth ID (from external_id): {booth_id}")
+        if not reference_id:
+            logging.warning("[WEBHOOK] No reference_id in payload['data'].")
+            return jsonify({"error": "Missing reference_id in payload['data']"}), 400
+
+        booth_id = None
+        try:
+            parts = reference_id.split('-')
+            if len(parts) >= 3:
+                booth_id = parts[2]
+        except Exception as e:
+            logging.warning(f"[WEBHOOK] Could not extract booth_id from reference_id: {reference_id}, error: {e}")
 
         if not booth_id:
-            logging.warning("[WEBHOOK] No external_id in payload.")
-            return jsonify({"error": "Missing external_id in payload"}), 400
+            logging.warning(f"[WEBHOOK] Could not determine booth_id from reference_id: {reference_id}")
+            return jsonify({"error": "Could not determine booth_id from reference_id"}), 400
 
-        # 1. Check payment status
-        status = data.get("status", "").upper()
-        if status in ("PAID", "COMPLETED"):
+        if status in ("SUCCEEDED", "PAID", "COMPLETED"):
             config = get_config_for_webhook(booth_id)
             if config:
-                run_dslrbooth_session(booth_id)
-                logging.info(f"[WEBHOOK] Payment received and dslrbooth triggered for booth: {booth_id}")
+                # Delay 5 seconds before triggering DSLRBooth, but show success page immediately
+                def delayed_dslrbooth():
+                    time.sleep(5)
+                    run_dslrbooth_session(booth_id)
+                threading.Thread(target=delayed_dslrbooth, daemon=True).start()
+                return redirect(url_for('payment.payment_status'))
             else:
                 logging.warning(f"[WEBHOOK] No config found for booth_id: {booth_id}")
         else:
@@ -260,13 +269,9 @@ def run_dslrbooth_session(booth_id):
     """
     Triggers dslrbooth. This can be called from the webhook (with booth_id)
     or from a logged-in route (where it could get the id from session).
+    Note: Do not handle Flask redirects or open browser tabs here. The route or frontend should handle redirecting
+    to the payment success page.
     """
-    # To use this function from a logged-in context, you'd call it like:
-    # run_dslrbooth_session(session['booth_id'])
-
-    # Since the webhook provides the booth_id, we need to find the full path to fetch the config.
-    # This is a limitation of a stateless webhook.
-    
     booth_doc = None
     client_docs = db_fs.collection('Clients').stream()
     for client in client_docs:
@@ -299,8 +304,12 @@ def run_dslrbooth_session(booth_id):
     except Exception as e:
         logging.warning(f"DSLRBooth API failed: {e}")
 
-    time.sleep(0.5)
-    # Try to minimize PyWebview window before focusing dslrBooth
+    # Do  open the payment success page or browser tab here. 
+    
+
+    time.sleep(3)
+
+    # Try to minimize the PyWebview window (if any)
     try:
         import pygetwindow as gw
         webview_windows = [w for w in gw.getAllTitles() if w and ("Eagleies Photobox" in w or "Photobox" in w)]
@@ -342,34 +351,3 @@ def run_dslrbooth_session(booth_id):
             except Exception as e3:
                 logging.warning(f"Fallback alt+tab also failed: {e3}")
     time.sleep(1)
-
-    logging.info("Starting countdown GUI")
-    threading.Thread(target=start_countdown_gui, daemon=True).start()
-
-
-def start_countdown_gui(seconds=300):
-    """Note: This function is now independent of doc_id as it's a visual element."""
-    def run():
-        for i in range(seconds, -1, -1):
-            label.config(text=f"{i} s")
-            time.sleep(1)
-        root.destroy()
-        
-        try:
-            win = gw.getWindowsWithTitle("Photobox")[0]
-            if win:
-                win.activate()
-            logging.info("Focus returned to Photobox window.")
-        except Exception as e:
-            logging.warning(f"Failed to focus Photobox window: {e}")
-
-    root = tk.Tk()
-    root.title("Countdown")
-    root.overrideredirect(True)
-    root.attributes("-topmost", True)
-    root.geometry("200x60+860+20") # Example position
-    label = tk.Label(root, text="", font=("Poppins", 18), bg="white", fg="black")
-    label.pack(expand=True)
-
-    threading.Thread(target=run, daemon=True).start()
-    root.mainloop()

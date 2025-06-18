@@ -3,110 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pembayaran Berhasil - PhotoBox</title>
-  <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
-
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>PAYMENT SUCCESS</title>
   <style>
-    body { font-family: 'Poppins', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Impact&display=swap');
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #e80000;
+      min-height: 100vh;
+      width: 100vw;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: 'Impact', Impact, Charcoal, sans-serif;
+    }
+    .brand {
+      font-family: 'Impact', Impact, Charcoal, sans-serif;
+      color: #fff;
+      font-size: 2.8rem;
+      font-weight: normal;
+      letter-spacing: 0.04em;
+      margin-top: 5.2rem;
+      margin-bottom: 6rem;
+      user-select: none;
+      text-align: center;
+    }
+    .brand .dot {
+      color: #fff;
+    }
+    .success-text {
+      font-family: 'Impact', Impact, Charcoal, sans-serif;
+      color: #fff;
+      font-size: 18vw;
+      font-weight: normal;
+      text-align: center;
+      margin-top: 6.5rem;
+      margin-bottom: 0;
+      line-height: 1.1;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      word-break: break-word;
+    }
+    @media (max-width: 600px) {
+      .brand { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 3rem; }
+      .success-text { font-size: 12vw; }
+    }
   </style>
 </head>
-
-<body class="bg-gradient-to-br from-green-100 to-white flex flex-col items-center justify-center min-h-screen overflow-hidden">
-
-  <div class="bg-white p-10 rounded-2xl shadow-2xl text-center max-w-md w-full fade-in">
-    <h1 class="text-3xl font-bold text-green-600 mb-4">Pembayaran Berhasil!</h1>
-    <p class="text-gray-600 mb-6">Persiapkan diri Anda, sesi PhotoBox akan segera dimulai.</p>
-
-    <!-- Countdown -->
-    <div id="countdown" class="text-4xl font-bold text-green-500 mb-6">5</div>
-
-    <!-- Spinner -->
-    <div id="spinner" class="mb-6">
-      <div class="w-12 h-12 border-4 border-t-green-500 border-solid rounded-full animate-spin mx-auto"></div>
-    </div>
-
-    <!-- Sesi Dimulai -->
-    <div id="session-started" class="hidden text-green-700 text-xl font-semibold mb-6">
-      Menyiapkan sesi photobox...
-    </div>
-
-    <!-- Button to Home -->
-    <a href="/{{ doc_id }}"
-   class="mt-4 inline-block px-5 py-2 bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-600">
-  Kembali ke Halaman Utama
-</a>
-
+<body>
+  <div class="brand">JELLYPOP<span class="dot">.</span></div>
+  <div class="success-text">
+    PAYMENT<br>SUCCESS
   </div>
-
-<script>
-  let countdownValue = 5;
-  const countdownDisplay = document.getElementById("countdown");
-  const spinner = document.getElementById("spinner");
-  const sessionStarted = document.getElementById("session-started");
-  const docId = "{{ doc_id }}";
-  // Tembakkan confetti saat halaman dibuka!
-  confetti({
-    particleCount: 150,
-    spread: 80,
-    origin: { y: 0.6 }
-  });
-
-
-
-  // Countdown
-  const countdownInterval = setInterval(() => {
-    countdownDisplay.textContent = countdownValue;
-    countdownValue--;
-
-    if (countdownValue < 0) {
-      clearInterval(countdownInterval);
-
-      spinner.classList.add("hidden");
-      countdownDisplay.classList.add("hidden");
-      sessionStarted.classList.remove("hidden");
-
-      // Setelah 2 detik, trigger DSLR Booth
-      setTimeout(triggerDslrBooth, 2000);
-    }
-  }, 1000);
-
-  function triggerDslrBooth() {
-  fetch('/trigger_dslrbooth', { method: 'POST' })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === "dslrbooth triggered") {
-        console.log("dslrBooth triggered.");
-      } else {
-        console.error("Failed to trigger dslrBooth.");
-      }
-    })
-    .catch(error => {
-      console.error("Error triggering dslrBooth:", error);
-    });
-}
-
-
-function checkSessionEnd() {
-  if (!docId) return;
-  fetch(`/${docId}/check_session_state`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.state === "ended") {
-        console.log("📦 Sesi photobox selesai, akan kembali ke home dalam 5 detik");
-        setTimeout(() => {
-          window.location.href = `/${docId}`;  // redirect ke halaman home
-        }, 5000);  // ⬅️ Delay 5 detik agar dslrBooth sempat terbuka
-      }
-    })
-    .catch(err => console.error("Error checking session:", err));
-}
-
-
-
-  setInterval(checkSessionEnd, 3000);
-</script>
-
 </body>
 </html>

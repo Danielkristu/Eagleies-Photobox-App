@@ -38,8 +38,8 @@ def get_booth_config():
         client_id = session['client_id']
         booth_id = session['booth_id']
         logging.info(f"GET_CONFIG: Attempting to fetch config for ClientID: {client_id}, BoothID: {booth_id}")
-        print(f"[DEBUG] get_booth_config: client_id={client_id}, booth_id={booth_id}")
-        print(f"[DEBUG] get_booth_config: session={dict(session)}")
+        logging.info(f"[DEBUG] get_booth_config: client_id={client_id}, booth_id={booth_id}")
+        logging.info(f"[DEBUG] get_booth_config: session={dict(session)}")
 
         # 1. Fetch the main booth document
         booth_doc_ref = db_fs.collection('Clients').document(client_id).collection('Booths').document(booth_id)
@@ -47,12 +47,12 @@ def get_booth_config():
 
         if not booth_doc.exists:
             logging.warning(f"❌ GET_CONFIG: Main booth document not found for BoothID: {booth_id}")
-            print(f"[DEBUG] get_booth_config: booth_doc not found for client_id={client_id}, booth_id={booth_id}")
+            logging.info(f"[DEBUG] get_booth_config: booth_doc not found for client_id={client_id}, booth_id={booth_id}")
             return None
         
         booth_data = booth_doc.to_dict()
         logging.info(f"✅ GET_CONFIG: Found main booth document.")
-        print(f"[DEBUG] booth_data after fetch: {booth_data}")
+        logging.info(f"[DEBUG] booth_data after fetch: {booth_data}")
 
         # --- FIX: Always ensure 'settings' is present and is a dict ---
         if 'settings' not in booth_data or not isinstance(booth_data['settings'], dict):
@@ -62,7 +62,7 @@ def get_booth_config():
         settings_field_merged = False
         # 2. Merge 'settings' field if present in booth document
         if 'settings' in booth_data:
-            print(f"[DEBUG] settings field type: {type(booth_data['settings'])}, value: {booth_data['settings']}")
+            logging.info(f"[DEBUG] settings field type: {type(booth_data['settings'])}, value: {booth_data['settings']}")
         if 'settings' in booth_data and isinstance(booth_data['settings'], dict):
             # Do NOT flatten settings into booth_data, just keep as booth_data['settings']
             logging.info(f"✅ GET_CONFIG: 'settings' field present in booth document.")
@@ -100,10 +100,9 @@ def get_booth_config():
 
         # Log the xendit_api_key for debug
         api_key = booth_data.get('xendit_api_key')
-        print(f"[DEBUG] booth_data after all merging: {booth_data}")
+        logging.info(f"[DEBUG] booth_data after all merging: {booth_data}")
         if api_key:
             logging.info(f"[GET_CONFIG] xendit_api_key found: {api_key}")
-            print(f"[GET_CONFIG] xendit_api_key found: {api_key}")
         else:
             logging.warning(f"[GET_CONFIG] xendit_api_key is missing in merged config!")
             print(f"[GET_CONFIG] xendit_api_key is missing in merged config!")
@@ -166,7 +165,7 @@ def get_config_for_webhook(booth_id):
             logging.info(f"Webhook found config for booth {booth_id} under client {client.id}")
             booth_data = doc.to_dict()
             print(f"[DEBUG] get_config_for_webhook: booth_id={booth_id}, client_id={client.id}")
-            print(f"[DEBUG] booth_data after fetch: {booth_data}")
+            logging.info(f"[DEBUG] booth_data after fetch: {booth_data}")
             settings_field_merged = False
             if 'settings' in booth_data:
                 print(f"[DEBUG] settings field type: {type(booth_data['settings'])}, value: {booth_data['settings']}")

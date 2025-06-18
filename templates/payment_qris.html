@@ -293,11 +293,11 @@
       fetch(checkUrl)
         .then(res => res.json())
         .then(data => {
-          if (data.status === "COMPLETED") {
+          if (data.status === "payment succeed") { // <-- match backend response
             clearInterval(statusChecker);
             clearInterval(countdownInterval);
             confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-            setTimeout(() => window.location.href = config.statusUrl, 3000);
+            setTimeout(() => window.location.href = config.statusUrl, 1500); // redirect in webview
           } else if (data.status === "EXPIRED") {
             clearInterval(statusChecker);
             clearInterval(countdownInterval);

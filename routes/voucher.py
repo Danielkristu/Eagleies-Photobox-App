@@ -144,7 +144,7 @@ def start_payment_qris_voucher(doc_id):
         return {"error": "Nominal voucher tidak valid."}, 400
     if amount < 1500 or amount > 10000000:
         return {"error": "Nominal QRIS harus antara 1.500 dan 10.000.000"}, 400
-    reference_id = f"Eagleies-QRIS-{uuid.uuid4()}"
+    reference_id = f"Eagleies-QRIS-{doc_id}-{uuid.uuid4()}"
     data = {
         "external_id": doc_id,  # booth_id as required
         "reference_id": reference_id,  # unique per request
@@ -240,7 +240,7 @@ def voucher_start_payment_qris(doc_id, discount):
         return {"error": "Nominal voucher tidak valid."}, 400
     if amount < 1500 or amount > 10000000:
         return {"error": "Nominal QRIS harus antara 1.500 dan 10.000.000"}, 400
-    reference_id = f"Eagleies-QRIS-{uuid.uuid4()}"
+    reference_id = f"Eagleies-QRIS-{doc_id}-{uuid.uuid4()}"
     data = {
         "external_id": doc_id,
         "reference_id": reference_id,
