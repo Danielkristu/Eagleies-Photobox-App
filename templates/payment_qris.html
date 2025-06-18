@@ -229,7 +229,11 @@
   
   <!-- ✅ FIXED: Storing server-rendered URLs in data attributes to avoid JS SyntaxErrors -->
   <div id="js-config"
+       {% if voucher_discount is defined %}
+       data-start-qris-url="/voucher_start_payment_qris/{{ doc_id }}/{{ voucher_discount }}"
+       {% else %}
        data-start-qris-url="{{ url_for('payment.start_payment_qris') }}"
+       {% endif %}
        data-check-qris-url-template="{{ url_for('payment.check_qr_status', qr_id='QR_ID_PLACEHOLDER') }}"
        data-home-url="{{ url_for('home') }}"
        data-status-url="{{ url_for('payment.payment_status') }}"
