@@ -31,34 +31,41 @@ def get_booth_config():
     """
     if 'client_id' not in session or 'booth_id' not in session:
         logging.warning("GET_CONFIG: Attempted to get config without a valid session.")
+        print(f"[DEBUG] get_booth_config: session missing client_id or booth_id. session={dict(session)}")
         return None
-    
+
     try:
         client_id = session['client_id']
         booth_id = session['booth_id']
         logging.info(f"GET_CONFIG: Attempting to fetch config for ClientID: {client_id}, BoothID: {booth_id}")
         print(f"[DEBUG] get_booth_config: client_id={client_id}, booth_id={booth_id}")
-        
+        print(f"[DEBUG] get_booth_config: session={dict(session)}")
+
         # 1. Fetch the main booth document
         booth_doc_ref = db_fs.collection('Clients').document(client_id).collection('Booths').document(booth_id)
         booth_doc = booth_doc_ref.get()
 
         if not booth_doc.exists:
             logging.warning(f"❌ GET_CONFIG: Main booth document not found for BoothID: {booth_id}")
+            print(f"[DEBUG] get_booth_config: booth_doc not found for client_id={client_id}, booth_id={booth_id}")
             return None
         
         booth_data = booth_doc.to_dict()
         logging.info(f"✅ GET_CONFIG: Found main booth document.")
         print(f"[DEBUG] booth_data after fetch: {booth_data}")
 
+        # --- FIX: Always ensure 'settings' is present and is a dict ---
+        if 'settings' not in booth_data or not isinstance(booth_data['settings'], dict):
+            booth_data['settings'] = {}
+            print(f"[DEBUG] No settings found in booth_data, defaulting to empty dict.")
+
         settings_field_merged = False
         # 2. Merge 'settings' field if present in booth document
         if 'settings' in booth_data:
             print(f"[DEBUG] settings field type: {type(booth_data['settings'])}, value: {booth_data['settings']}")
         if 'settings' in booth_data and isinstance(booth_data['settings'], dict):
-            booth_data.update(booth_data['settings'])
-            logging.info(f"✅ GET_CONFIG: Merged 'settings' field from booth document.")
-            del booth_data['settings']
+            # Do NOT flatten settings into booth_data, just keep as booth_data['settings']
+            logging.info(f"✅ GET_CONFIG: 'settings' field present in booth document.")
             settings_field_merged = True
 
         # 3. Fetch the settings from the subcollection
@@ -68,18 +75,19 @@ def get_booth_config():
         if settings_docs:
             settings_data = settings_docs[0].to_dict()
             logging.info(f"✅ GET_CONFIG: Found settings document in subcollection.")
-            booth_data.update(settings_data)
+            print(f"[DEBUG] settings subcollection data: {settings_data}")
+            booth_data['settings'].update(settings_data)
             settings_subcol_merged = True
 
         if not settings_field_merged and not settings_subcol_merged:
             logging.warning(f"⚠️ GET_CONFIG: No settings found in either the 'settings' field or subcollection for BoothID: {booth_id}. API keys might be missing.")
+            print(f"[DEBUG] get_booth_config: No settings found in booth doc or subcollection for booth_id={booth_id}")
 
         # 4. Fetch and merge parent client document fields (e.g., xendit_api_key)
         client_doc_ref = db_fs.collection('Clients').document(client_id)
         client_doc = client_doc_ref.get()
         if client_doc.exists:
             client_data = client_doc.to_dict()
-            # Always take xendit_api_key from parent client doc only
             if 'xendit_api_key' in client_data:
                 booth_data['xendit_api_key'] = client_data['xendit_api_key']
             for k, v in client_data.items():
@@ -88,6 +96,7 @@ def get_booth_config():
             logging.info(f"✅ GET_CONFIG: Merged parent client document fields into config.")
         else:
             logging.warning(f"⚠️ GET_CONFIG: Parent client document not found for ClientID: {client_id}.")
+            print(f"[DEBUG] get_booth_config: client_doc not found for client_id={client_id}")
 
         # Log the xendit_api_key for debug
         api_key = booth_data.get('xendit_api_key')

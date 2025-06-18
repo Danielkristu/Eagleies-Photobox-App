@@ -60,26 +60,17 @@ def use_voucher(doc_id):
 @voucher_bp.route("/<doc_id>/payment_qris")
 def shared_payment_page(doc_id):
     # Cek apakah ada sesi voucher
-    amount = session.get("voucher_amount") if session.get("use_voucher") else None
-    config = db_fs.collection("Photobox").document(doc_id).get().to_dict()
+    discount = session.get("voucher_discount")
+    config = db_fs.collection("Clients").document(session.get("client_id")).collection("Booths").document(doc_id).get().to_dict()
 
-    if not amount:
-        amount = config.get("price", 10000)
-
-    # Calculate price for QRIS page
-    price_per_session = None
-    # Try to get discount from session, else use default price
-    if "voucher_discount" in session:
-        price_per_session = session["voucher_discount"]
+    # Always use the discount field as price if present (even if 0)
+    if discount is not None:
+        try:
+            price_per_session = int(discount)
+        except Exception:
+            price_per_session = 0
     else:
-        # Fallback: get price from booth config
-        client_id = session.get('client_id')
-        booth_doc = db_fs.collection("Clients").document(client_id) \
-            .collection("Booths").document(doc_id).get()
-        if booth_doc.exists:
-            price_per_session = booth_doc.to_dict().get("settings", {}).get("price", 10000)
-        else:
-            price_per_session = 10000
+        price_per_session = config.get("settings", {}).get("price", 10000)
 
     # Fetch QRIS background from Firestore (same as payment_qris)
     bg_url = None

@@ -18,7 +18,7 @@ from utils.helpers import get_booth_config, get_config_for_webhook, get_xendit_c
 
 
 # --- Helper Functions & Setup ---
-
+print("=== PAYMENT_QRIS ROUTE HIT ===")
 db_fs = firestore.Client()
 payment_bp = Blueprint("payment", __name__)
 
@@ -58,7 +58,7 @@ def start_payment_invoice():
 
     booth_id = session['booth_id']
     settings = config.get('settings', {})
-    price = settings.get('price', 10000)
+    price = settings.get('price')
     callback_url = f"https://services.eagleies.com/xendit_webhook?booth_id={booth_id}"
 
     data = { "external_id": str(uuid.uuid4()), "amount": price, "description": "Photobox", "callback_url": callback_url, "success_redirect_url": url_for('payment.payment_status', _external=True) }
@@ -115,9 +115,24 @@ def start_payment_qris():
 
     settings = config.get('settings', {})
     booth_id = session.get('booth_id')
+    # Debug: Print settings and price
+    print(f"[DEBUG] settings loaded in /start_payment_qris: {settings}")
+    print(f"[DEBUG] settings.get('price'): {settings.get('price')}")
     # Required fields
     reference_id = f"photobox-qris-{uuid.uuid4()}"
-    amount = settings.get('price', 10000)
+    # Ensure amount is an integer and valid for Xendit
+    price_raw = settings.get('price')
+    print(f"[DEBUG] Raw price from settings: {price_raw} (type: {type(price_raw)})")
+    try:
+        if price_raw is None:
+            raise ValueError('Price is None')
+        if isinstance(price_raw, str):
+            price_raw = price_raw.replace(',', '').replace(' ', '')
+        amount = int(float(price_raw))
+    except Exception as e:
+        print(f"[ERROR] Invalid price value in settings: {price_raw}, error: {e}")
+        amount = 12000
+    print(f"[DEBUG] amount used for QRIS (as int): {amount}")
     currency = settings.get('currency', 'IDR')
     qris_type = settings.get('qris_type', 'DYNAMIC')  # DYNAMIC or STATIC
     # Optional fields
