@@ -182,19 +182,30 @@ def check_qr_status(qr_id):
     config = get_booth_config()
     if not config:
         return jsonify({"error": "Unauthorized"}), 401
-        
+    
     client = get_xendit_client(config)
     response = client.get(f"https://api.xendit.co/qr_codes/{qr_id}")
 
     if response.status_code == 200:
         qr_data = response.json()
         booth_id = session.get('booth_id')
-        # Check if external_id or booth_id in QR matches the host
-        if booth_id and (
-            qr_data.get('external_id') == booth_id or
-            qr_data.get('booth_id') == booth_id
-        ):
-            return jsonify({"status": "payment succeed", "qr": qr_data})
+        # Parse booth_id from reference_id (format: Eagleies-QRIS-{booth_id}-{uuid})
+        reference_id = qr_data.get('reference_id', '')
+        parsed_booth_id = None
+        try:
+            parts = reference_id.split('-')
+            if len(parts) >= 3:
+                parsed_booth_id = parts[2]
+        except Exception as e:
+            parsed_booth_id = None
+        if booth_id and parsed_booth_id == booth_id:
+            status = qr_data.get('status', '').upper()
+            if status in ("SUCCEEDED", "PAID", "COMPLETED"):
+                return jsonify({"status": "payment succeed", "qr": qr_data})
+            elif status == "EXPIRED":
+                return jsonify({"status": "EXPIRED", "qr": qr_data})
+            else:
+                return jsonify({"status": "PENDING", "qr": qr_data})
         return jsonify(qr_data)
     return jsonify({"error": "Failed to check QRIS status"}), 500
 
@@ -242,12 +253,19 @@ def xendit_webhook():
         if status in ("SUCCEEDED", "PAID", "COMPLETED"):
             config = get_config_for_webhook(booth_id)
             if config:
-                # Delay 5 seconds before triggering DSLRBooth, but show success page immediately
-                def delayed_dslrbooth():
-                    time.sleep(5)
-                    run_dslrbooth_session(booth_id)
-                threading.Thread(target=delayed_dslrbooth, daemon=True).start()
-                return redirect(url_for('payment.payment_status'))
+                # Show payment success page for user (browser), otherwise just return JSON for Xendit
+                if request.accept_mimetypes.accept_html and session.get('booth_id') == booth_id:
+                    # Delay DSLRBooth trigger for 5 seconds after showing success page
+                    def delayed_dslrbooth():
+                        import time
+                        time.sleep(5)
+                        run_dslrbooth_session(booth_id)
+                    threading.Thread(target=delayed_dslrbooth, daemon=True).start()
+                    return redirect(url_for('payment.payment_status'))
+                else:
+                    # Xendit server-to-server: trigger DSLRBooth immediately, return JSON
+                    threading.Thread(target=run_dslrbooth_session, args=(booth_id,), daemon=True).start()
+                    return jsonify({"status": "received"}), 200
             else:
                 logging.warning(f"[WEBHOOK] No config found for booth_id: {booth_id}")
         else:

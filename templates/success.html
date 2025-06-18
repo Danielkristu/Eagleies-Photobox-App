@@ -61,5 +61,47 @@
   <div class="success-text">
     PAYMENT<br>SUCCESS
   </div>
+  <script>
+      // Poll payment/session status every 3 seconds
+      let pollInterval = null;
+      function checkPaymentStatus() {
+        // Try to get QR ID from URL or sessionStorage (if available)
+        let qrId = null;
+        // Try to extract from URL (e.g., ?qr_id=xxxx)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('qr_id')) {
+          qrId = urlParams.get('qr_id');
+        } else if (sessionStorage.getItem('qr_id')) {
+          qrId = sessionStorage.getItem('qr_id');
+        }
+        if (!qrId) {
+          // No QR ID, stop polling
+          clearInterval(pollInterval);
+          return;
+        }
+        fetch(`/check_qr_status/${qrId}`)
+          .then(resp => resp.json())
+          .then(data => {
+            if (data.status === 'payment succeed') {
+              // Payment is successful, trigger next step (e.g., DSLRBooth or redirect)
+              clearInterval(pollInterval);
+              // Optionally, you can trigger a custom event or call a function here
+              // For now, just reload to ensure DSLRBooth is triggered if needed
+              window.location.reload();
+            } else if (data.status === 'EXPIRED') {
+              clearInterval(pollInterval);
+              window.location.href = '/payment_failed';
+            }
+            // else: still pending, keep polling
+          })
+          .catch(err => {
+            // Optionally handle error
+            console.error('Polling error:', err);
+          });
+      }
+      window.addEventListener('DOMContentLoaded', function() {
+        pollInterval = setInterval(checkPaymentStatus, 3000);
+      });
+    </script>
 </body>
 </html>
