@@ -223,27 +223,31 @@ def payment_failed():
 def xendit_webhook():
     try:
         data = request.json
-        booth_id = request.args.get("booth_id")
+        # Use only external_id from payload to identify the booth
+        booth_id = data.get("external_id")
 
-        logging.info(f"Webhook received! Data: {data}, Booth ID: {booth_id}")
+        logging.info(f"[WEBHOOK] Received: {data}, Booth ID (from external_id): {booth_id}")
 
-        if data.get("status") == "PAID" and booth_id:
-            
-            # ✅ CORRECT: Uses the new helper to find the config for the webhook
+        if not booth_id:
+            logging.warning("[WEBHOOK] No external_id in payload.")
+            return jsonify({"error": "Missing external_id in payload"}), 400
+
+        # 1. Check payment status
+        status = data.get("status", "").upper()
+        if status in ("PAID", "COMPLETED"):
             config = get_config_for_webhook(booth_id)
-
             if config:
-                # You can now access the API key and other settings
-                # client = get_xendit_client(config) 
-                # run_dslrbooth_session(config) 
-                logging.info(f"Payment received for booth: {config.get('name')}")
+                run_dslrbooth_session(booth_id)
+                logging.info(f"[WEBHOOK] Payment received and dslrbooth triggered for booth: {booth_id}")
             else:
-                 logging.warning(f"Webhook received for an unknown booth_id: {booth_id}")
+                logging.warning(f"[WEBHOOK] No config found for booth_id: {booth_id}")
+        else:
+            logging.info(f"[WEBHOOK] Payment not completed. Status: {status}")
 
         return jsonify({"status": "received"}), 200
 
     except Exception as e:
-        logging.exception("Error in webhook:")
+        logging.exception("[WEBHOOK] Error in webhook:")
         return jsonify({"error": str(e)}), 500
 
 
@@ -278,11 +282,13 @@ def run_dslrbooth_session(booth_id):
         
     config = booth_doc.to_dict()
     settings = config.get("settings", {})
-    dslr_url = settings.get("dslrbooth_api_url")
-    dslr_pass = settings.get("dslrbooth_api_password")
+    print(f"[DSLRBOOTH] settings for booth {booth_id}: {settings}")  # DEBUG LOG
+    # Try both possible field names for dslrbooth API URL and password
+    dslr_url = settings.get("dslrbooth_api_url") or settings.get("dslrbooth_api")
+    dslr_pass = settings.get("dslrbooth_api_password") or settings.get("dslrbooth_password")
 
     if not dslr_url or not dslr_pass:
-        logging.error(f"DSLRBooth API URL or password missing for booth {booth_id}")
+        logging.error(f"DSLRBooth API URL or password missing for booth {booth_id}. settings: {settings}")
         return
 
     headers = {"x-api-key": dslr_pass}
@@ -294,7 +300,47 @@ def run_dslrbooth_session(booth_id):
         logging.warning(f"DSLRBooth API failed: {e}")
 
     time.sleep(0.5)
-    pyautogui.hotkey("alt", "tab")
+    # Try to minimize PyWebview window before focusing dslrBooth
+    try:
+        import pygetwindow as gw
+        webview_windows = [w for w in gw.getAllTitles() if w and ("Eagleies Photobox" in w or "Photobox" in w)]
+        if webview_windows:
+            win = gw.getWindowsWithTitle(webview_windows[0])[0]
+            win.minimize()
+            logging.info(f"Minimized window: {webview_windows[0]}")
+    except Exception as e:
+        logging.warning(f"Could not minimize PyWebview window: {e}")
+    # Now try to focus dslrBooth
+    try:
+        windows = gw.getAllTitles()
+        dslr_windows = [w for w in windows if w and 'dslrbooth' in w.lower()]
+        if dslr_windows:
+            win = gw.getWindowsWithTitle(dslr_windows[0])[0]
+            win.activate()
+            logging.info(f"Focus switched to window: {dslr_windows[0]}")
+        else:
+            logging.warning("No window with 'dslrBooth' in title found. Sending alt+tab as fallback.")
+            import pyautogui
+            pyautogui.hotkey("alt", "tab")
+    except Exception as e:
+        logging.warning(f"Failed to focus dslrBooth window: {e}. Trying win32gui as fallback.")
+        try:
+            import win32gui, win32con
+            def enumHandler(hwnd, lParam):
+                if win32gui.IsWindowVisible(hwnd):
+                    title = win32gui.GetWindowText(hwnd)
+                    if 'dslrbooth' in title.lower():
+                        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+                        win32gui.SetForegroundWindow(hwnd)
+                        logging.info(f"win32gui: Focused window: {title}")
+            win32gui.EnumWindows(enumHandler, None)
+        except Exception as e2:
+            logging.warning(f"win32gui fallback also failed: {e2}. Sending alt+tab as last resort.")
+            try:
+                import pyautogui
+                pyautogui.hotkey("alt", "tab")
+            except Exception as e3:
+                logging.warning(f"Fallback alt+tab also failed: {e3}")
     time.sleep(1)
 
     logging.info("Starting countdown GUI")

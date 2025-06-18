@@ -212,14 +212,9 @@ if __name__ == "__main__":
 
     # Create and start the PyWebview desktop window pointing to the Flask server.
     webview.create_window(
-        "Photobox",
+        "Eagleies Photobox",
         url="http://127.0.0.1:5000/",
         width=1280,
         height=800
     )
     webview.start()
-
-# Only run the following if NOT running as a PyInstaller bundle
-if __name__ == "__main__" and not hasattr(sys, 'frozen'):
-    app.run(debug=True, use_reloader=False, port=5000)
-    waitress.serve(app, host="0.0.0.0", port=8080)
