@@ -232,13 +232,14 @@
   <div id="js-config"
        data-booth-id="{{ booth_id }}"
        {% if voucher_discount is defined %}
-       data-start-qris-url="/voucher_start_payment_qris/{{ booth_id }}/{{ doc_id }}/{{ voucher_discount }}"
+       data-start-qris-url="{{ url_for('voucher.voucher_start_payment_qris', doc_id=doc_id, discount=voucher_discount, _external=True, _scheme='https') }}"
+       data-check-qris-url-template="{{ url_for('voucher.voucher_check_qr_status', doc_id=doc_id, qr_id='QR_ID_PLACEHOLDER', _external=True, _scheme='https') }}"
        {% else %}
-       data-start-qris-url="{{ url_for('payment.start_payment_qris', booth_id=booth_id) }}"
+       data-start-qris-url="{{ url_for('payment.start_payment_qris', booth_id=booth_id, _external=True, _scheme='https') }}"
+       data-check-qris-url-template="{{ url_for('payment.check_qr_status', booth_id=booth_id, qr_id='QR_ID_PLACEHOLDER', _external=True, _scheme='https') }}"
        {% endif %}
-       data-check-qris-url-template="{{ url_for('payment.check_qr_status', booth_id=booth_id, qr_id='QR_ID_PLACEHOLDER') }}"
-       data-home-url="{{ url_for('home', booth_id=booth_id) }}"
-       data-status-url="{{ url_for('payment.payment_status', booth_id=booth_id) }}"
+       data-home-url="{{ url_for('home', booth_id=booth_id, _external=True, _scheme='https') }}"
+       data-status-url="{{ url_for('payment.payment_status', booth_id=booth_id, _external=True, _scheme='https') }}"
        style="display: none;">
   </div>
   <script>
@@ -309,20 +310,33 @@
       fetch(checkUrl)
         .then(function(res) { return res.json(); })
         .then(function(data) {
-          if (data.status === "payment succeed") { // <-- match backend response
+          console.log("QR status response:", data); // DEBUG: log response
+          if (!data || !data.status) {
+            console.warn("No status in response", data);
+            return;
+          }
+          const status = String(data.status).toLowerCase();
+          if (status === "payment succeed" || status === "payment_succeed" || status === "success") {
             clearInterval(statusChecker);
             clearInterval(countdownInterval);
             confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-            // Use transitionAndGo for robust redirect
             setTimeout(function() { transitionAndGo(config.statusUrl); }, 1500);
-          } else if (data.status === "EXPIRED") {
+          } else if (status === "expired") {
             clearInterval(statusChecker);
             clearInterval(countdownInterval);
             alert("QRIS pembayaran telah kadaluarsa. Silakan ulangi.");
             transitionAndGo(config.homeUrl);
+          } else if (status === "pending") {
+            // Still waiting, do nothing
+          } else {
+            console.warn("Unknown status:", status);
           }
         })
-        .catch(function(err) { console.error("Error checking QR status:", err); });
+        .catch(function(err) {
+          console.error("Error checking QR status:", err);
+          // Optionally show a message to the user
+          document.getElementById('timer').innerText = 'Gagal cek status pembayaran. Mengulang...';
+        });
     }
     // Add transition on navigation (for all links/buttons)
     function transitionAndGo(url) {

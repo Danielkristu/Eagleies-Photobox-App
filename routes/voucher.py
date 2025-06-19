@@ -272,6 +272,52 @@ def voucher_start_payment_qris(doc_id, discount):
         return {"error": "Terjadi kesalahan sistem"}, 500
 
 
+@voucher_bp.route("/voucher_check_qr_status/<doc_id>/<qr_id>")
+def voucher_check_qr_status(doc_id, qr_id):
+    """Checks the status of a specific QRIS payment for voucher flow."""
+    from routes.payment import get_xendit_client  # Avoid circular import
+    client_id = session.get('client_id')
+    if not client_id:
+        return {"error": "Session expired. Silakan login ulang."}, 401
+    # Fetch booth config
+    booth_doc = db_fs.collection("Clients").document(client_id).collection("Booths").document(doc_id).get()
+    if not booth_doc.exists:
+        return {"error": "Booth tidak ditemukan."}, 404
+    booth_config = booth_doc.to_dict() or {}
+    client = get_xendit_client(booth_config)
+    response = client.get(f"https://api.xendit.co/qr_codes/{qr_id}")
+    if response.status_code == 200:
+        qr_data = response.json()
+        reference_id = qr_data.get('reference_id', '')
+        # If reference_id is missing, try to get it from mapping
+        if not reference_id and qr_id:
+            ref_map_doc = db_fs.collection('QrIdToReference').document(qr_id).get()
+            if ref_map_doc.exists:
+                reference_id = ref_map_doc.to_dict().get('reference_id', '')
+        parsed_doc_id = None
+        try:
+            parts = reference_id.split('-')
+            if len(parts) >= 3:
+                parsed_doc_id = parts[2]
+        except Exception:
+            pass
+        # Check Firestore for payment status only if reference_id is not empty
+        if reference_id:
+            payment_doc = db_fs.collection('Payments').document(reference_id).get()
+            if payment_doc.exists and payment_doc.to_dict().get('status') == 'PAID':
+                return {"status": "payment succeed", "qr": qr_data}
+        if doc_id and parsed_doc_id == doc_id:
+            status = qr_data.get('status', '').upper()
+            if status in ("SUCCEEDED", "PAID", "COMPLETED"):
+                return {"status": "payment succeed", "qr": qr_data}
+            elif status == "EXPIRED":
+                return {"status": "EXPIRED", "qr": qr_data}
+            elif status == "INACTIVE":
+                return {"status": "PENDING", "qr": qr_data}
+        return qr_data
+    return {"error": "Failed to check QRIS status"}, 500
+
+
 # Tambahkan ke register_routes(app):
 # from routes.voucher import voucher_bp
 # app.register_blueprint(voucher_bp)

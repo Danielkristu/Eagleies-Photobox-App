@@ -58,7 +58,7 @@ def start_payment_invoice(booth_id):
 
     settings = config.get('settings', {})
     price = settings.get('price')
-    callback_url = f"https://services.eagleies.com/xendit_webhook?booth_id={booth_id}"
+    callback_url = f"https://dev.eagleies.com/xendit_webhook"
 
     data = { "external_id": str(uuid.uuid4()), "amount": price, "description": "Photobox", "callback_url": callback_url, "success_redirect_url": url_for('payment.payment_status', booth_id=booth_id, _external=True) }
     response = client.post("https://api.xendit.co/v2/invoices", json=data)
@@ -163,11 +163,14 @@ def start_payment_qris(booth_id):
     print(f"[QRIS] Xendit response: {response.status_code} {response.text}")
     if response.status_code in (200, 201):
         resp_json = response.json()
-        # Xendit may return 'qr_string', 'qr_url', or 'qr_code' depending on API version
-        # Map to expected frontend fields
         qr_id = resp_json.get('id')
         qr_code = resp_json.get('qr_code') or resp_json.get('qr_string') or resp_json.get('qr_url')
         if qr_id and qr_code:
+            # Store mapping qr_id -> reference_id
+            db_fs.collection('QrIdToReference').document(qr_id).set({
+                'reference_id': reference_id,
+                'created': firestore.SERVER_TIMESTAMP,
+            }, merge=True)
             return jsonify({"id": qr_id, "qr_code": qr_code, **resp_json})
         else:
             logging.error(f"[QRIS] Missing QR fields in Xendit response: {resp_json}")
@@ -177,7 +180,6 @@ def start_payment_qris(booth_id):
 
 @payment_bp.route("/<booth_id>/check_qr_status/<qr_id>")
 def check_qr_status(booth_id, qr_id):
-    # Use get_booth_config() with no arguments (uses session)
     config = get_booth_config()
     if not config:
         return jsonify({"error": "Unauthorized"}), 401
@@ -186,8 +188,12 @@ def check_qr_status(booth_id, qr_id):
 
     if response.status_code == 200:
         qr_data = response.json()
-        # Parse booth_id from reference_id (format: Eagleies-QRIS-{booth_id}-{uuid})
         reference_id = qr_data.get('reference_id', '')
+        # If reference_id is missing, try to get it from mapping
+        if not reference_id and qr_id:
+            ref_map_doc = db_fs.collection('QrIdToReference').document(qr_id).get()
+            if ref_map_doc.exists:
+                reference_id = ref_map_doc.to_dict().get('reference_id', '')
         parsed_booth_id = None
         try:
             parts = reference_id.split('-')
@@ -195,13 +201,20 @@ def check_qr_status(booth_id, qr_id):
                 parsed_booth_id = parts[2]
         except Exception as e:
             parsed_booth_id = None
+        # Check Firestore for payment status only if reference_id is not empty
+        if reference_id:
+            payment_doc = db_fs.collection('Payments').document(reference_id).get()
+            if payment_doc.exists and payment_doc.to_dict().get('status') == 'PAID':
+                return jsonify({"status": "payment succeed", "qr": qr_data})
         if booth_id and parsed_booth_id == booth_id:
             status = qr_data.get('status', '').upper()
             if status in ("SUCCEEDED", "PAID", "COMPLETED"):
-                # Do NOT trigger DSLRBooth here; only return status
                 return jsonify({"status": "payment succeed", "qr": qr_data})
             elif status == "EXPIRED":
                 return jsonify({"status": "EXPIRED", "qr": qr_data})
+            elif status == "INACTIVE":
+                # If not marked as paid, treat as pending
+                return jsonify({"status": "PENDING", "qr": qr_data})
             else:
                 return jsonify({"status": "PENDING", "qr": qr_data})
         return jsonify(qr_data)
@@ -247,6 +260,9 @@ def manual_webhook_test(booth_id):
 @payment_bp.route("/xendit_webhook", methods=["POST"])
 def xendit_webhook():
     try:
+        print("[WEBHOOK_XENDIT] Received Xendit webhook request")
+        print(f"[WEBHOOK] Headers: {dict(request.headers)}")
+        print(f"[WEBHOOK] Raw data: {request.data}")
         payload = request.json
         if payload is None:
             logging.error("[WEBHOOK] No JSON payload received")
@@ -269,20 +285,26 @@ def xendit_webhook():
         if not booth_id:
             logging.warning(f"[WEBHOOK] Could not determine booth_id from reference_id: {reference_id}")
             return jsonify({"error": "Could not determine booth_id from reference_id"}), 400
-        print(f"[WEBHOOK] Accept header: {request.headers.get('Accept')}")
-        # Only run dslrbooth if redirect is actually performed (HTML accept)
+
+        # Store payment status in Firestore if paid
         if status in ("SUCCEEDED", "PAID", "COMPLETED"):
+            db_fs.collection('Payments').document(reference_id).set({
+                'booth_id': booth_id,
+                'status': 'PAID',
+                'updated': firestore.SERVER_TIMESTAMP,
+            }, merge=True)
             config = get_config_for_webhook(booth_id)
             if config:
+                # Only trigger DSLRBooth for browser/manual test (HTML Accept)
                 if request.accept_mimetypes.accept_html:
+                    print("[WEBHOOK] Browser/manual test detected, triggering DSLRBooth and redirecting.")
                     def delayed_dslrbooth():
                         time.sleep(3)
                         run_dslrbooth_session(booth_id)
                     threading.Thread(target=delayed_dslrbooth, daemon=True).start()
-                    print(f"[WEBHOOK] Redirecting to payment_status for booth_id={booth_id}")
                     return redirect(url_for('payment.payment_status', booth_id=booth_id))
                 else:
-                    print(f"[WEBHOOK] Not running dslrbooth because no HTML redirect (API call)")
+                    print("[WEBHOOK] Xendit/API call detected, NOT triggering DSLRBooth.")
                     return jsonify({"status": "received"}), 200
             else:
                 logging.warning(f"[WEBHOOK] No config found for booth_id: {booth_id}")
