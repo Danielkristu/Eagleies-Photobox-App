@@ -66,7 +66,7 @@ def sign():
     """Renders the login page ('signin.html'). If a session already exists,
     it redirects directly to the main booth page."""
     if 'booth_id' in session:
-        return redirect(url_for('home'))
+        return redirect(url_for('start_page'))
     return render_template("signin.html")
 
 @auth_bp.route("/login", methods=["POST"])
@@ -100,7 +100,7 @@ def login():
             
             print(f"Login successful for Booth Code: {booth_code}. ClientID: {client_id}, BoothID: {booth_id}")
             
-            return redirect(url_for('home'))
+            return redirect(url_for('start_page', booth_id=booth_id))
         else:
             flash("Invalid Booth Code. Please try again.", "error")
             return redirect(url_for('auth.sign'))

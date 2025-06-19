@@ -98,5 +98,31 @@
         pollInterval = setInterval(checkPaymentStatus, 3000);
       });
     </script>
+  <script>
+  // Poll for session end and redirect to /start/<booth_id>
+  (function() {
+    // Try to get booth_id from a template variable or fallback to URL
+    var boothId = "{{ booth_id|default('') }}";
+    if (!boothId) {
+      // Try to extract from URL if not passed in context
+      var match = window.location.pathname.match(/\/([\w-]+)\//);
+      if (match) boothId = match[1];
+    }
+    function pollSessionState() {
+      if (!boothId) return;
+      fetch(`/${boothId}/check_session_state`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.state === "ended") {
+            window.location.href = `/start/${boothId}`;
+          } else {
+            setTimeout(pollSessionState, 1000);
+          }
+        })
+        .catch(() => setTimeout(pollSessionState, 1000));
+    }
+    pollSessionState();
+  })();
+  </script>
 </body>
 </html>

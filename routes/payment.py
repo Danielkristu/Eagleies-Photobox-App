@@ -446,8 +446,7 @@ def run_dslrbooth_session(booth_id):
 
     # Do  open the payment success page or browser tab here. 
     
-
-    time.sleep(3)
+    time.sleep(3)  # Wait for a moment to ensure the API call is processed
 
     # Try to minimize the PyWebview window (if any)
     try:
