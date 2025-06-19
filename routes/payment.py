@@ -237,7 +237,9 @@ def manual_webhook_test(booth_id):
         return redirect(url_for('auth.sign'))
     # Redirect to booth-specific success page first, then trigger DSLRBooth after 3 seconds
     def delayed_dslrbooth():
-        time.sleep(3)
+        redirect(url_for('payment.payment_status', booth_id=booth_id))
+        print(f"[WEBHOOK] Simulating redirect to payment_status for booth_id={booth_id}")
+        time.sleep(5)
         run_dslrbooth_session(booth_id)
     threading.Thread(target=delayed_dslrbooth, daemon=True).start()
     return redirect(url_for('payment.payment_status', booth_id=booth_id))
