@@ -1,4 +1,4 @@
-('D:\\Eagleies Creative\\Photobox\\build\\photobox\\Photobox_1.0.5.pkg',
+('D:\\Eagleies Creative\\Photobox\\build\\photobox\\Photobox_1.0.6.pkg',
  {'BINARY': True,
   'DATA': True,
   'EXECUTABLE': True,
