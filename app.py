@@ -4,6 +4,7 @@ import threading
 import time
 import webview
 import sys
+from functools import wraps
 
 from flask import (
     Flask, render_template, redirect, request, session, flash, url_for, Blueprint
@@ -152,45 +153,66 @@ app.register_blueprint(auth_bp)
 def home():
     """
     The main entry point of the app.
-    Redirects to the sign-in page if not logged in,
-    or to the main booth page if a session already exists.
-    This function should only handle redirection.
+    If accessed without a booth_id, redirect to the access code page.
     """
-    if 'booth_id' in session:
-        # Fetch background for index.html
-        bg_url = None
-        try:
-            booth_id = session.get('booth_id')
-            client_id = session.get('client_id')
-            if booth_id and client_id:
-                doc = db_fs.collection('Clients').document(client_id) \
-                    .collection('Booths').document(booth_id) \
-                    .collection('backgrounds').document('startBg').get()
-                if doc.exists:
-                    bg_url = doc.to_dict().get('url')
-        except Exception as e:
-            print(f"Error fetching background URL for index: {e}")
-        return render_template('index.html', doc_id=session['booth_id'], bg_url=bg_url)
+    # If someone tries to access '/', always redirect to access code page
     return redirect(url_for('auth.sign'))
 
-@app.route("/start")
-def start_page():
+def check_activation(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        booth_id = kwargs.get('booth_id')
+        # Only allow access if booth_id is present and matches session
+        if not booth_id or session.get('booth_id') != booth_id:
+            flash('Akses tidak diizinkan. Silakan login dengan kode booth yang benar.', 'error')
+            return redirect(url_for('auth.sign'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Example usage for index page:
+@app.route('/<booth_id>')
+@check_activation
+def booth_index(booth_id):
+    client_id = session.get('client_id')
     bg_url = None
+    # Check if the booth exists in Firestore for this client
+    booth_exists = False
     try:
-        # Get booth_id from session (as in your app logic)
-        booth_id = session.get('booth_id')
-        if booth_id:
-            # Path: Clients/<client_id>/Booths/<booth_id>/backgrounds/homeBg
-            client_id = session.get('client_id')
-            if client_id:
-                doc = db_fs.collection('Clients').document(client_id) \
-                    .collection('Booths').document(booth_id) \
-                    .collection('backgrounds').document('homeBg').get()
+        if client_id and booth_id:
+            booth_ref = db_fs.collection('Clients').document(client_id).collection('Booths').document(booth_id)
+            if booth_ref.get().exists:
+                booth_exists = True
+                doc = booth_ref.collection('backgrounds').document('startBg').get()
+                if doc.exists:
+                    bg_url = doc.to_dict().get('url')
+    except Exception as e:
+        print(f"Error fetching background URL for index: {e}")
+    if not booth_exists:
+        flash('Booth tidak ditemukan. Silakan masukkan kode akses.', 'error')
+        return redirect(url_for('auth.sign'))
+    return render_template('index.html', doc_id=booth_id, booth_id=booth_id, bg_url=bg_url)
+
+# Update your /start/<booth_id> route to also require activation
+@app.route("/start/<booth_id>")
+@check_activation
+def start_page(booth_id):
+    bg_url = None
+    client_id = session.get('client_id')
+    booth_exists = False
+    try:
+        if client_id and booth_id:
+            booth_ref = db_fs.collection('Clients').document(client_id).collection('Booths').document(booth_id)
+            if booth_ref.get().exists:
+                booth_exists = True
+                doc = booth_ref.collection('backgrounds').document('homeBg').get()
                 if doc.exists:
                     bg_url = doc.to_dict().get('url')
     except Exception as e:
         print(f"Error fetching background URL: {e}")
-    return render_template("StartPage.html", bg_url=bg_url)
+    if not booth_exists:
+        flash('Booth tidak ditemukan. Silakan masukkan kode akses.', 'error')
+        return redirect(url_for('auth.sign'))
+    return render_template("StartPage.html", bg_url=bg_url, booth_id=booth_id)
 
 
 # --- Webview and Flask Server ---

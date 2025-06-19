@@ -162,12 +162,12 @@
     <!-- Button Section (centered) -->
     <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; margin-top: 120px;">
       <button onclick="goToQris()" style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 56px; background: #e80000; color: #fff; border-radius: 24px; padding: 0 64px; height: 96px; min-width: 340px; box-shadow: 0 2px 8px #0001; border: none; margin-bottom: 16px; font-weight: reguler; letter-spacing: 1px;">QRIS</button>
-      <button onclick="window.location.href='{{ url_for('voucher.voucher_input', doc_id=doc_id) }}';" style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 40px; background: #000; color: #fff; border-radius: 18px; padding: 0 48px; height: 72px; min-width: 260px; box-shadow: 0 2px 8px #0001; border: none; font-weight: reguler; letter-spacing: 1px;">VOUCHER</button>
+      <button onclick="window.location.href='{{ url_for('voucher.voucher_input', booth_id=doc_id, doc_id=doc_id) }}';" style="font-family: 'Impact', Impact, Charcoal, sans-serif; font-size: 40px; background: #000; color: #fff; border-radius: 18px; padding: 0 48px; height: 72px; min-width: 260px; box-shadow: 0 2px 8px #0001; border: none; font-weight: reguler; letter-spacing: 1px;">VOUCHER</button>
     </div>
   </div>
 
   <!-- BACK BUTTON -->
-  <button onclick="window.location.href='/start'" class="back-btn" style="position: fixed; left: 2vw; bottom: 2vw; background: #e80000; color: #fff; border: none; border-radius: 1.2rem; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; font-size: 3.2rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.10); z-index: 100; transition: background 0.2s; padding: 0;">
+  <button onclick="transitionAndGo('/start/{{ doc_id }}')" class="back-btn" style="position: fixed; left: 2vw; bottom: 2vw; background: #e80000; color: #fff; border: none; border-radius: 1.2rem; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; font-size: 3.2rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.10); z-index: 100; transition: background 0.2s; padding: 0;">
     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; display: block;">
       <rect width="48" height="48" rx="12" fill="#e80000"/>
       <path d="M30 36L18 24L30 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -187,10 +187,10 @@
 
   <script>
     function goToQris() {
-      transitionAndGo(`{{ url_for('payment.payment_qris') }}`);
+      transitionAndGo(`{{ url_for('payment.payment_qris', booth_id=doc_id) }}`);
     }
     function goToVoucher() {
-      transitionAndGo(`{{ url_for('voucher.voucher_input', doc_id=doc_id) }}`);
+      transitionAndGo(`{{ url_for('voucher.voucher_input', booth_id=doc_id, doc_id=doc_id) }}`);
     }
     function goBack() {
       transitionAndGo('/'); // Or use window.history.back() if needed

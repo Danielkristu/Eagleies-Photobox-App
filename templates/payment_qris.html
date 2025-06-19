@@ -177,7 +177,8 @@
   <div class="qris-card">
     <div class="qris-title">SCAN ME</div>
     <div class="qris-qr-bg">
-      <canvas id="qrImage"></canvas>
+        <img id="qrImage" style="display:none; width:220px; height:220px; background:#f7d154; border-radius:0.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.04); object-fit:contain;" />
+        <canvas id="qrCanvas" style="display:none;"></canvas>
     </div>
     <div class="qris-amount" id="priceArea"></div>
     <div id="timer" class="qris-timer" style="color:#fff; font-family: Impact, Arial, sans-serif; font-size: 1.3rem; font-weight: reguler; margin-top: 0.2rem; text-align: center; letter-spacing: 0.02em; text-shadow: 0 2px 8px rgba(0,0,0,0.08);"></div>
@@ -229,14 +230,15 @@
   
   <!-- ✅ FIXED: Storing server-rendered URLs in data attributes to avoid JS SyntaxErrors -->
   <div id="js-config"
+       data-booth-id="{{ booth_id }}"
        {% if voucher_discount is defined %}
-       data-start-qris-url="/voucher_start_payment_qris/{{ doc_id }}/{{ voucher_discount }}"
+       data-start-qris-url="/voucher_start_payment_qris/{{ booth_id }}/{{ doc_id }}/{{ voucher_discount }}"
        {% else %}
-       data-start-qris-url="{{ url_for('payment.start_payment_qris') }}"
+       data-start-qris-url="{{ url_for('payment.start_payment_qris', booth_id=booth_id) }}"
        {% endif %}
-       data-check-qris-url-template="{{ url_for('payment.check_qr_status', qr_id='QR_ID_PLACEHOLDER') }}"
-       data-home-url="{{ url_for('home') }}"
-       data-status-url="{{ url_for('payment.payment_status') }}"
+       data-check-qris-url-template="{{ url_for('payment.check_qr_status', booth_id=booth_id, qr_id='QR_ID_PLACEHOLDER') }}"
+       data-home-url="{{ url_for('home', booth_id=booth_id) }}"
+       data-status-url="{{ url_for('payment.payment_status', booth_id=booth_id) }}"
        style="display: none;">
   </div>
   <script>
@@ -251,25 +253,38 @@
     // price_per_session is passed directly from the Python route
     // Declare price as a string and parse it to avoid JS errors
     var price = JSON.parse('{{ price_per_session | tojson | safe }}');
+    console.log("payment_qris.js loaded"); // DEBUG: script loaded
     window.onload = function() {
+      console.log("window.onload fired");
       fetch(config.startQrisUrl, { method: "POST" })
         .then(res => res.json())
         .then(data => {
-          if (data.qr_string && data.id) {
-            qrId = data.id;
+          console.log("QRIS create response:", data);
+          qrId = data.id;
+          if (data.qr_code && (data.qr_code.startsWith('http') || data.qr_code.startsWith('data:image'))) {
+            // Show QR as image
+            const qrImg = document.getElementById('qrImage');
+            qrImg.src = data.qr_code;
+            qrImg.style.display = 'block';
+            document.getElementById('qrCanvas').style.display = 'none';
+          } else if (data.qr_string) {
+            // Render QR using QRious
+            document.getElementById('qrImage').style.display = 'none';
+            document.getElementById('qrCanvas').style.display = 'block';
             new QRious({
-              element: document.getElementById('qrImage'),
+              element: document.getElementById('qrCanvas'),
               value: data.qr_string,
-              size: 300
+              size: 220
             });
-            document.getElementById('priceArea').innerText = "Rp " + price.toLocaleString('id-ID');
-            document.getElementById('loading').classList.remove('hidden');
-            statusChecker = setInterval(checkQrStatus, 4000);
-            countdownInterval = setInterval(updateCountdown, 1000);
           } else {
             alert("Gagal membuat QRIS. Silakan coba lagi.");
             console.error("Error creating QRIS:", data.error);
+            return;
           }
+          document.getElementById('priceArea').innerText = "Rp " + price.toLocaleString('id-ID');
+          document.getElementById('loading').classList.remove('hidden');
+          statusChecker = setInterval(checkQrStatus, 4000);
+          countdownInterval = setInterval(updateCountdown, 1000);
         })
         .catch(err => {
           console.error("Fetch error:", err);
@@ -289,23 +304,25 @@
     }
     function checkQrStatus() {
       if (!qrId) return;
+      console.log("Polling QR status for:", qrId); // DEBUG: show polling in browser console
       const checkUrl = config.checkQrisUrlTemplate.replace('QR_ID_PLACEHOLDER', qrId);
       fetch(checkUrl)
-        .then(res => res.json())
-        .then(data => {
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
           if (data.status === "payment succeed") { // <-- match backend response
             clearInterval(statusChecker);
             clearInterval(countdownInterval);
             confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-            setTimeout(() => window.location.href = config.statusUrl, 1500); // redirect in webview
+            // Use transitionAndGo for robust redirect
+            setTimeout(function() { transitionAndGo(config.statusUrl); }, 1500);
           } else if (data.status === "EXPIRED") {
             clearInterval(statusChecker);
             clearInterval(countdownInterval);
             alert("QRIS pembayaran telah kadaluarsa. Silakan ulangi.");
-            window.location.href = config.homeUrl;
+            transitionAndGo(config.homeUrl);
           }
         })
-        .catch(err => console.error("Error checking QR status:", err));
+        .catch(function(err) { console.error("Error checking QR status:", err); });
     }
     // Add transition on navigation (for all links/buttons)
     function transitionAndGo(url) {

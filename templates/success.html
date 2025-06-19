@@ -56,7 +56,7 @@
     }
   </style>
 </head>
-<body>
+<body data-booth-id="{{ booth_id }}">
   <div class="brand">JELLYPOP<span class="dot">.</span></div>
   <div class="success-text">
     PAYMENT<br>SUCCESS
@@ -65,9 +65,7 @@
       // Poll payment/session status every 3 seconds
       let pollInterval = null;
       function checkPaymentStatus() {
-        // Try to get QR ID from URL or sessionStorage (if available)
         let qrId = null;
-        // Try to extract from URL (e.g., ?qr_id=xxxx)
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('qr_id')) {
           qrId = urlParams.get('qr_id');
@@ -75,31 +73,28 @@
           qrId = sessionStorage.getItem('qr_id');
         }
         if (!qrId) {
-          // No QR ID, stop polling
           clearInterval(pollInterval);
           return;
         }
-        fetch(`/check_qr_status/${qrId}`)
-          .then(resp => resp.json())
-          .then(data => {
+        // Get booth_id from a data attribute or URL
+        var boothId = document.body.dataset.boothId || '{{ booth_id }}';
+        fetch(`/check_qr_status/${boothId}/${qrId}`)
+          .then(function(resp) { return resp.json(); })
+          .then(function(data) {
             if (data.status === 'payment succeed') {
-              // Payment is successful, trigger next step (e.g., DSLRBooth or redirect)
               clearInterval(pollInterval);
-              // Optionally, you can trigger a custom event or call a function here
-              // For now, just reload to ensure DSLRBooth is triggered if needed
               window.location.reload();
             } else if (data.status === 'EXPIRED') {
               clearInterval(pollInterval);
-              window.location.href = '/payment_failed';
+              window.location.href = `/payment_failed/${boothId}`;
             }
-            // else: still pending, keep polling
           })
-          .catch(err => {
-            // Optionally handle error
+          .catch(function(err) {
             console.error('Polling error:', err);
           });
       }
       window.addEventListener('DOMContentLoaded', function() {
+        document.body.dataset.boothId = '{{ booth_id }}';
         pollInterval = setInterval(checkPaymentStatus, 3000);
       });
     </script>

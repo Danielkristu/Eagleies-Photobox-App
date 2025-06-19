@@ -201,7 +201,7 @@
     <span>VOUCHER</span>
   </div>
   <div class="voucher-input-wrap">
-    <form method="POST" action="{{ url_for('voucher.use_voucher', doc_id=doc_id) }}">
+    <form method="POST" action="{{ url_for('voucher.use_voucher', booth_id=booth_id, doc_id=doc_id) }}">
       <input type="text" name="voucher_code" id="voucher_code" class="voucher-input" placeholder="" autofocus autocomplete="off">
       <div class="voucher-keyboard">
         <div class="keyboard-row">
@@ -234,7 +234,7 @@
       <button type="submit" class="keyboard-key key-wide" style="margin: 1.2rem auto 0 auto; display: block; font-family: Impact, Arial, sans-serif; font-size: 2.2rem; font-weight: reguler; width: 100%; max-width: 100vw;">ENTER</button>
     </form>
   </div>
-  <button class="back-btn" onclick="window.location.href='/'">
+  <button class="back-btn" type="button" onclick="window.location.href='{{ url_for('home', booth_id=booth_id) }}'; return false;">
     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="48" height="48" rx="12" fill="#e80000"/>
       <path d="M30 36L18 24L30 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
