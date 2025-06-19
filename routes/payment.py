@@ -198,7 +198,7 @@ def check_qr_status(booth_id, qr_id):
         if booth_id and parsed_booth_id == booth_id:
             status = qr_data.get('status', '').upper()
             if status in ("SUCCEEDED", "PAID", "COMPLETED"):
-                threading.Thread(target=run_dslrbooth_session, args=(booth_id,), daemon=True).start()
+                # Do NOT trigger DSLRBooth here; only return status
                 return jsonify({"status": "payment succeed", "qr": qr_data})
             elif status == "EXPIRED":
                 return jsonify({"status": "EXPIRED", "qr": qr_data})
@@ -230,18 +230,16 @@ def test_redirect(booth_id):
 def manual_webhook_test(booth_id):
     """
     Simulate a successful webhook call from the browser for manual testing.
-    Redirects to the payment success page first, then triggers DSLRBooth after 3 seconds.
+    Redirects to the payment success page first, then triggers DSLRBooth after 5 seconds.
     """
-    # No longer use session for booth_id, use the URL param
     if not booth_id:
         return redirect(url_for('auth.sign'))
-    # Redirect to booth-specific success page first, then trigger DSLRBooth after 3 seconds
+    # Start DSLRBooth trigger in a background thread after 5 seconds
     def delayed_dslrbooth():
-        redirect(url_for('payment.payment_status', booth_id=booth_id))
-        print(f"[WEBHOOK] Simulating redirect to payment_status for booth_id={booth_id}")
         time.sleep(5)
         run_dslrbooth_session(booth_id)
     threading.Thread(target=delayed_dslrbooth, daemon=True).start()
+    # Immediately redirect to the payment success page
     return redirect(url_for('payment.payment_status', booth_id=booth_id))
 
 # Note: The xendit_webhook must remain public and cannot use the session.
