@@ -220,10 +220,66 @@ def check_qr_status(booth_id, qr_id):
         return jsonify(qr_data)
     return jsonify({"error": "Failed to check QRIS status"}), 500
 
+@payment_bp.route("/<booth_id>/voucher_check_qr_status/<qr_id>")
+def voucher_check_qr_status(booth_id, qr_id):
+    """Checks the status of a specific QRIS payment for voucher flow, matching the logic of check_qr_status."""
+    config = get_booth_config()
+    if not config:
+        return jsonify({"error": "Unauthorized"}), 401
+    client = get_xendit_client(config)
+    response = client.get(f"https://api.xendit.co/qr_codes/{qr_id}")
+
+    if response.status_code == 200:
+        qr_data = response.json()
+        reference_id = qr_data.get('reference_id', '')
+        # If reference_id is missing, always try to get it from mapping
+        if not reference_id and qr_id:
+            ref_map_doc = db_fs.collection('QrIdToReference').document(qr_id).get()
+            if ref_map_doc.exists:
+                reference_id = ref_map_doc.to_dict().get('reference_id', '')
+                print(f"[VOUCHER_QRIS_POLL] Fallback mapping found: qr_id={qr_id}, reference_id={reference_id}")
+            else:
+                print(f"[VOUCHER_QRIS_POLL] No mapping found for qr_id={qr_id}")
+        parsed_booth_id = None
+        try:
+            parts = reference_id.split('-')
+            if len(parts) >= 3:
+                parsed_booth_id = parts[2]
+        except Exception as e:
+            parsed_booth_id = None
+        # Debug logging
+        print(f"[VOUCHER_QRIS_POLL] qr_id: {qr_id}, reference_id: {reference_id}, parsed_booth_id: {parsed_booth_id}, booth_id: {booth_id}")
+        # Check Firestore for payment status only if reference_id is not empty
+        payment_status = None
+        if reference_id:
+            payment_doc = db_fs.collection('Payments').document(reference_id).get()
+            if payment_doc.exists:
+                payment_status = payment_doc.to_dict().get('status')
+                print(f"[VOUCHER_QRIS_POLL] Firestore payment status: {payment_status}")
+                if payment_status == 'PAID':
+                    return jsonify({"status": "payment succeed", "qr": qr_data})
+        else:
+            print(f"[VOUCHER_QRIS_POLL] No reference_id available for Firestore check.")
+        # Always check Xendit status as fallback
+        status = qr_data.get('status', '').upper()
+        print(f"[VOUCHER_QRIS_POLL] Xendit QRIS status: {status}")
+        if status in ("SUCCEEDED", "PAID", "COMPLETED"):
+            return jsonify({"status": "payment succeed", "qr": qr_data})
+        elif status == "EXPIRED":
+            return jsonify({"status": "EXPIRED", "qr": qr_data})
+        elif status in ("INACTIVE", "ACTIVE"):
+            # Treat both ACTIVE and INACTIVE as pending
+            return jsonify({"status": "PENDING", "qr": qr_data})
+        else:
+            # For any other status, return the actual status
+            return jsonify({"status": status, "qr": qr_data})
+    return jsonify({"error": "Failed to check QRIS status"}), 500
+
 # --- Other Shared Routes (Now Namespaced) ---
 @payment_bp.route("/<booth_id>/voucher_input")
 def voucher_input(booth_id):
-    if not get_booth_config(booth_id): return redirect(url_for('auth.sign'))
+    if not get_config_for_webhook(booth_id):
+        return redirect(url_for('auth.sign'))
     return render_template("voucher_input.html", booth_id=booth_id)
 
 @payment_bp.route("/<booth_id>/payment_status")
@@ -282,6 +338,15 @@ def xendit_webhook():
                 booth_id = parts[2]
         except Exception as e:
             logging.warning(f"[WEBHOOK] Could not extract booth_id from reference_id: {reference_id}, error: {e}")
+        # --- Backfill QrIdToReference mapping from webhook ---
+        qr_id = data.get('qr_id')
+        if qr_id and reference_id:
+            db_fs.collection('QrIdToReference').document(qr_id).set({
+                'reference_id': reference_id,
+                'created': firestore.SERVER_TIMESTAMP,
+                'webhook_backfill': True
+            }, merge=True)
+            print(f"[WEBHOOK] Backfilled QrIdToReference: qr_id={qr_id}, reference_id={reference_id}")
         if not booth_id:
             logging.warning(f"[WEBHOOK] Could not determine booth_id from reference_id: {reference_id}")
             return jsonify({"error": "Could not determine booth_id from reference_id"}), 400

@@ -232,14 +232,14 @@
   <div id="js-config"
        data-booth-id="{{ booth_id }}"
        {% if voucher_discount is defined %}
-       data-start-qris-url="{{ url_for('voucher.voucher_start_payment_qris', doc_id=doc_id, discount=voucher_discount, _external=True, _scheme='https') }}"
-       data-check-qris-url-template="{{ url_for('voucher.voucher_check_qr_status', doc_id=doc_id, qr_id='QR_ID_PLACEHOLDER', _external=True, _scheme='https') }}"
+       data-start-qris-url="{{ url_for('voucher.voucher_start_payment_qris', doc_id=doc_id, discount=voucher_discount) }}"
+       data-check-qris-url-template="{{ url_for('payment.voucher_check_qr_status', booth_id=booth_id, qr_id='QR_ID_PLACEHOLDER') }}"
        {% else %}
-       data-start-qris-url="{{ url_for('payment.start_payment_qris', booth_id=booth_id, _external=True, _scheme='https') }}"
-       data-check-qris-url-template="{{ url_for('payment.check_qr_status', booth_id=booth_id, qr_id='QR_ID_PLACEHOLDER', _external=True, _scheme='https') }}"
+       data-start-qris-url="{{ url_for('payment.start_payment_qris', booth_id=booth_id) }}"
+       data-check-qris-url-template="{{ url_for('payment.check_qr_status', booth_id=booth_id, qr_id='QR_ID_PLACEHOLDER') }}"
        {% endif %}
-       data-home-url="{{ url_for('home', booth_id=booth_id, _external=True, _scheme='https') }}"
-       data-status-url="{{ url_for('payment.payment_status', booth_id=booth_id, _external=True, _scheme='https') }}"
+       data-home-url="{{ url_for('home', booth_id=booth_id) }}"
+       data-status-url="{{ url_for('payment.payment_status', booth_id=booth_id) }}"
        style="display: none;">
   </div>
   <script>
