@@ -4420,6 +4420,10 @@
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\werkzeug\\wsgi.py',
    'PYMODULE'),
+  ('win32con',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32\\lib\\win32con.py',
+   'PYMODULE'),
   ('win32ctypes',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\__init__.py',
