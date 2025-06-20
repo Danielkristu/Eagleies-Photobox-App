@@ -6,8 +6,8 @@
       {
         "source": "/api/**",
         "run": {
-          "serviceId": "photobox-backend",
-          "region": "YOUR_REGION"
+          "serviceId": "eagleies-photobox-system",
+          "region": "asia-northeast2"
         }
       },
       {
