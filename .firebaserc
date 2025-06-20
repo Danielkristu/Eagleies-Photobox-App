@@ -1,6 +1,7 @@
-# .firebaserc
 {
   "projects": {
-    "default": "YOUR_FIREBASE_PROJECT_ID"
-  }
+    "chronosnap-prod": "egc-photobox"
+  },
+  "targets": {},
+  "etags": {}
 }
