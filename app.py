@@ -3,6 +3,8 @@ import os
 import threading
 import time
 import webview
+import sys
+from functools import wraps
 
 from flask import (
     Flask, render_template, redirect, request, session, flash, url_for, Blueprint
@@ -12,9 +14,9 @@ from google.cloud import firestore
 from datetime import timedelta
 from dotenv import load_dotenv
 from routes import register_routes
+import waitress
 
 from routes.auth import auth_bp
-from routes.activate import activate_bp
 from routes.dashboard import dashboard_bp
 from routes.client import client_bp
 from routes.payment import payment_bp
@@ -23,6 +25,10 @@ from routes.voucher import voucher_bp
 
 # Load environment variables from a .env file
 load_dotenv()
+
+# Set GOOGLE_APPLICATION_CREDENTIALS for PyInstaller (exe) and normal run
+base_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(base_dir, "serviceAccountKey.json")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -36,6 +42,7 @@ app.permanent_session_lifetime = timedelta(days=7)
 CORS(app)
 app.register_blueprint(payment_bp)
 app.register_blueprint(client_bp)
+app.register_blueprint(voucher_bp)
 # --- Firestore Setup ---
 # This uses Application Default Credentials.
 # Ensure the GOOGLE_APPLICATION_CREDENTIALS environment variable is set in your .env file
@@ -59,7 +66,7 @@ def sign():
     """Renders the login page ('signin.html'). If a session already exists,
     it redirects directly to the main booth page."""
     if 'booth_id' in session:
-        return redirect(url_for('home'))
+        return redirect(url_for('start_page'))
     return render_template("signin.html")
 
 @auth_bp.route("/login", methods=["POST"])
@@ -93,7 +100,7 @@ def login():
             
             print(f"Login successful for Booth Code: {booth_code}. ClientID: {client_id}, BoothID: {booth_id}")
             
-            return redirect(url_for('home'))
+            return redirect(url_for('start_page', booth_id=booth_id))
         else:
             flash("Invalid Booth Code. Please try again.", "error")
             return redirect(url_for('auth.sign'))
@@ -113,10 +120,20 @@ def booth():
     if 'booth_id' not in session or 'client_id' not in session:
         flash("You must be logged in to view this page.", "error")
         return redirect(url_for('auth.sign'))
-    
-    # Get the booth_id from the session to pass to the template
+    # Get the booth_id and client_id from the session to pass to the template
     doc_id = session.get('booth_id')
-    return render_template("index.html", doc_id=doc_id)
+    client_id = session.get('client_id')
+    bg_url = None
+    try:
+        if client_id and doc_id:
+            doc = db_fs.collection('Clients').document(client_id) \
+                .collection('Booths').document(doc_id) \
+                .collection('backgrounds').document('startBg').get()
+            if doc.exists:
+                bg_url = doc.to_dict().get('url')
+    except Exception as e:
+        print(f"Error fetching background URL for index: {e}")
+    return render_template("index.html", doc_id=doc_id, bg_url=bg_url)
 
 
 @auth_bp.route("/logout")
@@ -126,22 +143,8 @@ def logout():
     flash("You have been successfully logged out.", "info")
     return redirect(url_for('auth.sign'))
 
-# --- Voucher Blueprint (Placeholder) ---
-# Create a new blueprint for voucher-related functionality to resolve the BuildError
-voucher_bp = Blueprint('voucher', __name__)
-
-@voucher_bp.route("/voucher/<doc_id>")
-def voucher_input(doc_id):
-    """
-    This is a placeholder for your voucher input page.
-    It resolves the url_for('voucher.voucher_input') error.
-    """
-    return f"This is the voucher page for document: {doc_id}"
-
-
 # Register the blueprints with the main Flask app
 app.register_blueprint(auth_bp)
-app.register_blueprint(voucher_bp)
 
 
 # --- Main Application Route ---
@@ -150,13 +153,66 @@ app.register_blueprint(voucher_bp)
 def home():
     """
     The main entry point of the app.
-    Redirects to the sign-in page if not logged in,
-    or to the main booth page if a session already exists.
-    This function should only handle redirection.
+    If accessed without a booth_id, redirect to the access code page.
     """
-    if 'booth_id' in session:
-        return redirect(url_for('auth.booth'))
+    # If someone tries to access '/', always redirect to access code page
     return redirect(url_for('auth.sign'))
+
+def check_activation(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        booth_id = kwargs.get('booth_id')
+        # Only allow access if booth_id is present and matches session
+        if not booth_id or session.get('booth_id') != booth_id:
+            flash('Akses tidak diizinkan. Silakan login dengan kode booth yang benar.', 'error')
+            return redirect(url_for('auth.sign'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Example usage for index page:
+@app.route('/<booth_id>')
+@check_activation
+def booth_index(booth_id):
+    client_id = session.get('client_id')
+    bg_url = None
+    # Check if the booth exists in Firestore for this client
+    booth_exists = False
+    try:
+        if client_id and booth_id:
+            booth_ref = db_fs.collection('Clients').document(client_id).collection('Booths').document(booth_id)
+            if booth_ref.get().exists:
+                booth_exists = True
+                doc = booth_ref.collection('backgrounds').document('startBg').get()
+                if doc.exists:
+                    bg_url = doc.to_dict().get('url')
+    except Exception as e:
+        print(f"Error fetching background URL for index: {e}")
+    if not booth_exists:
+        flash('Booth tidak ditemukan. Silakan masukkan kode akses.', 'error')
+        return redirect(url_for('auth.sign'))
+    return render_template('index.html', doc_id=booth_id, booth_id=booth_id, bg_url=bg_url)
+
+# Update your /start/<booth_id> route to also require activation
+@app.route("/start/<booth_id>")
+@check_activation
+def start_page(booth_id):
+    bg_url = None
+    client_id = session.get('client_id')
+    booth_exists = False
+    try:
+        if client_id and booth_id:
+            booth_ref = db_fs.collection('Clients').document(client_id).collection('Booths').document(booth_id)
+            if booth_ref.get().exists:
+                booth_exists = True
+                doc = booth_ref.collection('backgrounds').document('homeBg').get()
+                if doc.exists:
+                    bg_url = doc.to_dict().get('url')
+    except Exception as e:
+        print(f"Error fetching background URL: {e}")
+    if not booth_exists:
+        flash('Booth tidak ditemukan. Silakan masukkan kode akses.', 'error')
+        return redirect(url_for('auth.sign'))
+    return render_template("StartPage.html", bg_url=bg_url, booth_id=booth_id)
 
 
 # --- Webview and Flask Server ---
@@ -165,7 +221,8 @@ def home():
 def start_flask():
     """Function to run the Flask app."""
     # use_reloader=False is important to prevent issues when running in a thread.
-    app.run(debug=True, use_reloader=False, port=5000)
+    # waitress.serve will not show the Flask dev server warning and is production-ready
+    waitress.serve(app, host='127.0.0.1', port=5000)
 
 if __name__ == "__main__":
     # Run Flask in a separate thread so it doesn't block the GUI thread.
@@ -173,13 +230,13 @@ if __name__ == "__main__":
     flask_thread.start()
 
     # Wait a moment for Flask to start up before opening the window.
-    time.sleep(1) 
+    time.sleep(1)
 
     # Create and start the PyWebview desktop window pointing to the Flask server.
     webview.create_window(
-        "Photobox", 
-        url="http://127.0.0.1:5000/", 
-        width=1280, 
+        "Eagleies Photobox",
+        url="http://127.0.0.1:5000/",
+        width=1280,
         height=800
     )
     webview.start()

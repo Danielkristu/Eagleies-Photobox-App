@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Data Transaksi</title>
+  <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+
+</head>
+<body class="bg-gray-100 p-8">
+  <div class="max-w-7xl mx-auto bg-white rounded-lg shadow p-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Laporan Transaksi</h1>
+      <a href="/admin_dashboard" class="bg-indigo-600 text-white px-4 py-2 rounded">Kembali ke Dashboard</a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <form method="GET" action="/admin_transactions" class="mb-6 flex items-center space-x-2">
+            <label for="status" class="text-gray-700">Filter Status:</label>
+            <select name="status" id="status" class="border rounded p-2">
+              <option value="">Semua</option>
+              <option value="PAID" {% if selected_status == 'PAID' %}selected{% endif %}>PAID</option>
+              <option value="EXPIRED" {% if selected_status == 'EXPIRED' %}selected{% endif %}>EXPIRED</option>
+              <option value="FAILED" {% if selected_status == 'FAILED' %}selected{% endif %}>FAILED</option>
+            </select>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
+          </form>
+          
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Laporan Transaksi</h1>
+            <div class="flex space-x-4">
+              <a href="/admin_dashboard" class="bg-indigo-600 text-white px-4 py-2 rounded">Kembali ke Dashboard</a>
+              <a href="/admin_transactions/export" class="bg-green-600 text-white px-4 py-2 rounded">Download CSV</a>
+            </div>
+          </div>
+          
+      <table class="min-w-full bg-white">
+        <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+          <tr>
+            <th class="py-3 px-6 text-left">Invoice ID</th>
+            <th class="py-3 px-6 text-left">Amount (IDR)</th>
+            <th class="py-3 px-6 text-left">Status</th>
+            <th class="py-3 px-6 text-left">Waktu Dibuat</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-600 text-sm font-light">
+          {% for tx in transactions %}
+          <tr class="border-b border-gray-200 hover:bg-gray-100">
+            <td class="py-3 px-6 text-left">{{ tx.id }}</td>
+            <td class="py-3 px-6 text-left">{{ tx.amount }}</td>
+            <td class="py-3 px-6 text-left">{{ tx.status }}</td>
+            <td class="py-3 px-6 text-left">{{ tx.created | replace("T", " ") | replace(".000Z", "") }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ChartJS CDN -->
+<!-- ChartJS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<canvas id="transactionChart" width="400" height="150" class="mt-10"></canvas>
+
+<script>
+const rawData = {{ transactions_json | safe }};
+
+console.log(rawData); // cek data mentahnya
+
+const dateData = {};
+
+// Proses data: hitung jumlah transaksi dan total hasil per tanggal
+rawData.forEach(item => {
+  if (item.created && item.amount) {
+    const date = item.created.substring(0, 10);  // YYYY-MM-DD
+    if (!dateData[date]) {
+      dateData[date] = { count: 0, total: 0 };
+    }
+    dateData[date].count += 1;
+    dateData[date].total += item.amount;
+  }
+});
+
+// Siapkan data chart
+const sortedDates = Object.keys(dateData).sort();
+const counts = sortedDates.map(date => dateData[date].count);
+const totals = sortedDates.map(date => dateData[date].total);
+
+const ctx = document.getElementById('transactionChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line', // Line Chart 📈
+  data: {
+    labels: sortedDates,
+    datasets: [
+      {
+        label: 'Jumlah Transaksi',
+        data: counts,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        yAxisID: 'y',
+        tension: 0,
+        fill: false
+      },
+      {
+        label: 'Total Penjualan (Rp)',
+        data: totals,
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        yAxisID: 'y1',
+        tension: 0,
+        fill: false
+      }
+    ]
+  },
+  options: {
+  scales: {
+    y: {
+      type: 'linear',
+      display: true,
+      position: 'left',
+      beginAtZero: true,
+      title: {
+        display: true,
+        text: 'Jumlah Transaksi'
+      }
+    },
+    y1: {
+      type: 'linear',
+      display: true,
+      position: 'right',
+      beginAtZero: true,
+      title: {
+        display: true,
+        text: 'Total Penjualan (Rp)'
+      },
+      grid: {
+        drawOnChartArea: false,
+      }
+    }
+  },
+  plugins: {
+    tooltip: {
+      callbacks: {
+        label: function(context) {
+          const datasetLabel = context.dataset.label || '';
+          const value = context.parsed.y;
+          
+          // Kalau label "Total Penjualan", tambahkan format Rp
+          if (datasetLabel.includes('Penjualan')) {
+            return datasetLabel + ': Rp ' + value.toLocaleString('id-ID');
+          } else {
+            return datasetLabel + ': ' + value + ' transaksi';
+          }
+        }
+      }
+    }
+  }
+}
+});
+</script>
+
+
+
+
+</body>
+</html>
+

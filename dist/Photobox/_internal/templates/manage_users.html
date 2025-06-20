@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kelola Data Photobox</title>
+  <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-3xl font-bold text-indigo-700 mb-6 text-center">Manajemen Akun Photobox</h1>
+
+    <!-- FORM Tambah Baru (pakai Flask-WTF) -->
+    <form method="POST" action="/manage_users" class="bg-white p-6 rounded shadow mb-8 space-y-4">
+      {{ form.hidden_tag() }}
+      <h2 class="text-xl font-semibold mb-4 text-indigo-700">Tambah Pengguna Baru</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{ form.username(class="border p-2 rounded w-full", placeholder="Username") }}
+        {{ form.password(class="border p-2 rounded w-full", placeholder="Password") }}
+        {{ form.price(class="border p-2 rounded w-full", placeholder="Harga Per Sesi") }}
+        {{ form.xendit_api_key(class="border p-2 rounded w-full", placeholder="Xendit API Key") }}
+        {{ form.callback_url(class="border p-2 rounded w-full", placeholder="Callback URL") }}
+        {{ form.dslrbooth_api_url(class="border p-2 rounded w-full", placeholder="DSLRBooth API URL") }}
+        {{ form.dslrbooth_api_password(class="border p-2 rounded w-full", placeholder="DSLRBooth API Password") }}
+      </div>
+      <button type="submit" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">
+        {{ form.submit.label.text }}
+      </button>
+    </form>
+
+    <!-- TABEL Data -->
+    <div class="bg-white p-6 rounded shadow overflow-x-auto">
+      <h2 class="text-2xl font-semibold mb-4 text-indigo-700">Daftar Data di Koleksi Photobox</h2>
+      <table class="min-w-full border border-gray-300">
+        <thead class="bg-indigo-100 text-indigo-800 font-semibold">
+          <tr>
+            <th class="p-2 text-left">Document ID</th>
+            <th class="p-2 text-left">Booth ID</th>
+            <th class="p-2 text-left">Username</th>
+            <th class="p-2 text-left">Password</th>
+            <th class="p-2 text-left">Harga</th>
+            <th class="p-2 text-left">Xendit API</th>
+            <th class="p-2 text-left">Callback</th>
+            <th class="p-2 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for user in users %}
+          <tr>
+            <td class="p-2 font-mono">{{ user.id }}</td>
+            <td class="p-2 font-mono">{{ user.booth_id }}</td>
+            <td class="p-2">{{ user.username }}</td>
+            <td class="p-2">{{ user.password }}</td>
+            <td class="p-2">{{ user.price }}</td>
+            <td class="p-2">{{ user.xendit_api_key }}</td>
+            <td class="p-2">{{ user.callback_url }}</td>
+            <td class="p-2">
+              <button 
+                onclick="editUser(
+                  '{{ user.id }}',
+                  '{{ user.username }}',
+                  '{{ user.password }}',
+                  '{{ user.price }}',
+                  '{{ user.xendit_api_key }}',
+                  '{{ user.callback_url }}',
+                  '{{ user.dslrbooth_api_url }}',
+                  '{{ user.dslrbooth_api_password }}'
+                )"
+                class="text-blue-600 hover:underline"
+              >Edit</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FORM Edit Manual (belum pakai Flask-WTF) -->
+    <form method="POST" action="/manage_users" class="bg-white p-6 rounded shadow mt-10">
+      <h2 class="text-xl font-semibold mb-4 text-indigo-700">Edit Pengguna</h2>
+      <input type="hidden" name="doc_id" id="doc_id">
+      <label class="block mb-2 font-semibold">Username</label>
+      <input type="text" name="username" id="username" required class="border p-2 rounded w-full mb-4">
+      <label class="block mb-2 font-semibold">Password</label>
+      <input type="text" name="password" id="password" required class="border p-2 rounded w-full mb-4">
+      <label class="block mb-2 font-semibold">Harga Per Sesi</label>
+      <input type="number" name="price" id="price" class="border p-2 rounded w-full mb-4">
+      <label class="block mb-2 font-semibold">Xendit API Key</label>
+      <input type="text" name="xendit_api_key" id="xendit_api_key" class="border p-2 rounded w-full mb-4">
+      <label class="block mb-2 font-semibold">Callback URL</label>
+      <input type="text" name="callback_url" id="callback_url" class="border p-2 rounded w-full mb-4">
+      <label class="block mb-2 font-semibold">DSLRBooth API URL</label>
+      <input type="text" name="dslrbooth_api_url" id="dslrbooth_api_url" class="border p-2 rounded w-full mb-4">
+      <label class="block mb-2 font-semibold">DSLRBooth API Password</label>
+      <input type="text" name="dslrbooth_api_password" id="dslrbooth_api_password" class="border p-2 rounded w-full mb-4">
+      <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">Simpan</button>
+    </form>
+  </div>
+
+  <script>
+    function editUser(id, username, password, price, xenditApi, callback, dslrUrl, dslrPass) {
+      document.getElementById('doc_id').value = id;
+      document.getElementById('username').value = username;
+      document.getElementById('password').value = password;
+      document.getElementById('price').value = price;
+      document.getElementById('xendit_api_key').value = xenditApi;
+      document.getElementById('callback_url').value = callback;
+      document.getElementById('dslrbooth_api_url').value = dslrUrl;
+      document.getElementById('dslrbooth_api_password').value = dslrPass;
+    }
+  </script>
+</body>
+</html>

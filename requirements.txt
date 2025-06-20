@@ -1,0 +1,9 @@
+Flask
+gunicorn
+flask-cors
+google-cloud-firestore
+python-dotenv
+waitress
+pyautogui
+pygetwindow
+# Add any other dependencies your app uses below

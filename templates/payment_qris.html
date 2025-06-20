@@ -7,113 +7,357 @@
   <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    /* --- Remove old card styles and add new layout styles --- */
+    body {
+      background-image: url('{{ bg_url }}?v={{ cache_buster }}');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Montserrat', Arial, sans-serif;
+    }
+    .logo-jellypop {
+      font-family: Impact, Arial, sans-serif;
+      font-size: 2.2rem;
+      color: #000;
+      font-weight: normal;
+      letter-spacing: 0.04em;
+      text-align: left;
+      margin-top: 3.5rem;
+      margin-left: 7vw;
+      margin-bottom: 2.5rem;
+      user-select: none;
+    }
+    .logo-jellypop .dot {
+      color: #e80000;
+    }
+    .qris-card {
+      background: #e80000;
+      border-radius: 2.2rem;
+      max-width: 480px;
+      width: 90vw;
+      /* Center the card vertically and horizontally */
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem 2.5rem 1.5rem;
+      box-sizing: border-box;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+    }
+    .qris-title {
+      font-family: Impact, Arial, sans-serif;
+      font-size: 5rem;
+      color: #fff;
+      font-weight: normal;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.2rem;
+      text-align: center;
+
+      user-select: none;
+    }
+    .qris-qr-bg {
+      background: #f7f7f7;
+      border-radius: 1.2rem;
+      border: 6px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto 0.5rem auto;
+      box-sizing: border-box;
+    }
+    .qris-qr-bg canvas {
+      width: 220px !important;
+      height: 220px !important;
+      background: #f7d154;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .qris-amount {
+      color: #fff;
+      font-family: Impact, Arial, sans-serif;
+      font-size: 2.1rem;
+      font-weight: reguler;
+      margin-top: 1.2rem;
+      margin-bottom: 0.2rem;
+      letter-spacing: 0.02em;
+      text-align: center;
+      user-select: none;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .qris-timer {
+      color: #fff;
+      font-family: Impact, Arial, sans-serif;
+      font-size: 1.3rem;
+      font-weight: reguler;
+      margin-top: 0.2rem;
+      text-align: center;
+      letter-spacing: 0.02em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .qris-back-btn {
+      position: fixed;
+      left: 2vw;
+      bottom: 2vw;
+      background: #e80000;
+      color: #fff;
+      border: none;
+      border-radius: 1.2rem;
+      width: 90px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.2rem;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      cursor: pointer;
+      z-index: 100;
+      transition: background 0.2s;
+      padding: 0;
+    }
+    .qris-back-btn:active, .qris-back-btn:focus {
+      background: #e80000;
+    }
+    .qris-back-btn svg rect {
+      fill: #e80000;
+    }
+    .qris-back-btn svg {
+      width: 48px;
+      height: 48px;
+      display: block;
+    }
+    @media (max-width: 600px) {
+      .logo-jellypop { font-size: 1.3rem; margin-top: 1.2rem; }
+      .qris-card {
+        padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+        max-width: 98vw;
+        width: 98vw;
+      }
+      .qris-title { font-size: 4rem; }
+      .qris-qr-bg { width: 200px; height: 200px; }
+      .qris-qr-bg canvas { width: 120px !important; height: 120px !important; }
+      .qris-amount { font-size: 1.2rem; }
+      .qris-back-btn { width: 48px; height: 48px; font-size: 1.2rem; }
+      .qris-back-btn svg { width: 24px; height: 24px; }
+    }
+    /* --- Zoom-Fade Transition Styles --- */
+    .page-transition {
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: white;
+      pointer-events: none;
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.5s cubic-bezier(.4,0,.2,1), transform 0.5s cubic-bezier(.4,0,.2,1);
+    }
+    .page-transition.hide {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+    .page-transition.show {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-100 to-white flex flex-col items-center justify-center min-h-screen">
-
-  <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full">
-    <h1 class="text-3xl font-bold mb-4 text-indigo-600">Bayar via QRIS</h1>
-    <p class="text-gray-600 mb-4">Silakan scan QRIS di bawah ini</p>
-
-    <canvas id="qrImage" class="w-64 h-64 mx-auto mb-6"></canvas>
-    <div id="priceArea" class="text-xl font-semibold text-gray-700 mb-4"></div>
-    <div id="timer" class="text-sm text-gray-500 mb-4"></div>
-
+<body>
+  <div class="logo-jellypop">JELLYPOP<span class="dot">.</span></div>
+  <div class="qris-card">
+    <div class="qris-title">SCAN ME</div>
+    <div class="qris-qr-bg">
+        <img id="qrImage" style="display:none; width:220px; height:220px; background:#f7d154; border-radius:0.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.04); object-fit:contain;" />
+        <canvas id="qrCanvas" style="display:none;"></canvas>
+    </div>
+    <div class="qris-amount" id="priceArea"></div>
+    <div id="timer" class="qris-timer" style="color:#fff; font-family: Impact, Arial, sans-serif; font-size: 1.3rem; font-weight: reguler; margin-top: 0.2rem; text-align: center; letter-spacing: 0.02em; text-shadow: 0 2px 8px rgba(0,0,0,0.08);"></div>
     <div id="loading" class="mt-4 hidden">
-      <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <svg class="animate-spin h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
       </svg>
-      <p class="text-xs text-gray-500 mt-2">Menunggu pembayaran...</p>
     </div>
   </div>
+  <button class="qris-back-btn" onclick="transitionAndGo(config.homeUrl)" style="position: fixed; left: 2vw; bottom: 2vw; background: #e80000; color: #fff; border: none; border-radius: 1.2rem; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; font-size: 3.2rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.10); z-index: 100; transition: background 0.2s; padding: 0;">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 48px; height: 48px; display: block;">
+      <rect width="48" height="48" rx="12" fill="#e80000"/>
+      <path d="M30 36L18 24L30 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  <div class="page-transition show" id="pageTransition"></div>
+  <script>
+    // Preload background image and remove overlay only after all content loaded + 0.5s delay
+    document.addEventListener('DOMContentLoaded', function() {
+      const transition = document.getElementById('pageTransition');
+      const bgUrl = `{{ bg_url }}?v={{ cache_buster }}`;
+      // Set overlay background to match page bg
+      transition.style.backgroundImage = `url('${bgUrl}')`;
+      transition.style.backgroundSize = 'cover';
+      transition.style.backgroundPosition = 'center';
+      transition.style.backgroundRepeat = 'no-repeat';
+      transition.style.backgroundAttachment = 'fixed';
+      // Preload image
+      const img = new Image();
+      img.src = bgUrl;
+      img.onload = function() {
+        window.requestAnimationFrame(() => {
+          setTimeout(() => {
+            transition.classList.add('hide');
+            transition.classList.remove('show');
+          }, 500);
+        });
+      };
+      // If image fails to load, fallback to fade anyway after 1.5s
+      setTimeout(() => {
+        if (!transition.classList.contains('hide')) {
+          transition.classList.add('hide');
+          transition.classList.remove('show');
+        }
+      }, 1500);
+    });
+  </script>
   
   <!-- ✅ FIXED: Storing server-rendered URLs in data attributes to avoid JS SyntaxErrors -->
   <div id="js-config"
-       data-start-qris-url="{{ url_for('payment.start_payment_qris') }}"
-       data-check-qris-url-template="{{ url_for('payment.check_qr_status', qr_id='QR_ID_PLACEHOLDER') }}"
-       data-home-url="{{ url_for('home') }}"
-       data-status-url="{{ url_for('payment.payment_status') }}"
+       data-booth-id="{{ booth_id }}"
+       {% if voucher_discount is defined %}
+       data-start-qris-url="{{ url_for('voucher.voucher_start_payment_qris', doc_id=doc_id, discount=voucher_discount) }}"
+       data-check-qris-url-template="{{ url_for('payment.voucher_check_qr_status', booth_id=booth_id, qr_id='QR_ID_PLACEHOLDER') }}"
+       {% else %}
+       data-start-qris-url="{{ url_for('payment.start_payment_qris', booth_id=booth_id) }}"
+       data-check-qris-url-template="{{ url_for('payment.check_qr_status', booth_id=booth_id, qr_id='QR_ID_PLACEHOLDER') }}"
+       {% endif %}
+       data-home-url="{{ url_for('home', booth_id=booth_id) }}"
+       data-status-url="{{ url_for('payment.payment_status', booth_id=booth_id) }}"
        style="display: none;">
   </div>
-
-
-<script>
-  // ✅ FIXED: Read URLs from the data attributes instead of using Jinja syntax in JS
-  const config = document.getElementById('js-config').dataset;
-
-  let qrId = null;
-  let statusChecker = null;
-  let countdownInterval = null;
-  let remainingTime = 180; // 3 menit timeout
-
-  // price_per_session is passed directly from the Python route
-  const price = {{ price_per_session | tojson }};
-
-  window.onload = function() {
-    fetch(config.startQrisUrl, { method: "POST" })
-      .then(res => res.json())
-      .then(data => {
-        if (data.qr_string && data.id) { // Xendit uses 'id' for QRIS
+  <script>
+    // ✅ FIXED: Read URLs from the data attributes instead of using Jinja syntax in JS
+    const config = document.getElementById('js-config').dataset;
+    let qrId = null;
+    let statusChecker = null;
+    let countdownInterval = null;
+    let remainingTime = 90; // 3 menit timeout
+  </script>
+  <script>
+    // price_per_session is passed directly from the Python route
+    // Declare price as a string and parse it to avoid JS errors
+    var price = JSON.parse('{{ price_per_session | tojson | safe }}');
+    console.log("payment_qris.js loaded"); // DEBUG: script loaded
+    window.onload = function() {
+      console.log("window.onload fired");
+      fetch(config.startQrisUrl, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          console.log("QRIS create response:", data);
           qrId = data.id;
-
-          new QRious({
-            element: document.getElementById('qrImage'),
-            value: data.qr_string,
-            size: 300
-          });
-
-          document.getElementById('priceArea').innerText = "Total: Rp " + price.toLocaleString('id-ID');
+          if (data.qr_code && (data.qr_code.startsWith('http') || data.qr_code.startsWith('data:image'))) {
+            // Show QR as image
+            const qrImg = document.getElementById('qrImage');
+            qrImg.src = data.qr_code;
+            qrImg.style.display = 'block';
+            document.getElementById('qrCanvas').style.display = 'none';
+          } else if (data.qr_string) {
+            // Render QR using QRious
+            document.getElementById('qrImage').style.display = 'none';
+            document.getElementById('qrCanvas').style.display = 'block';
+            new QRious({
+              element: document.getElementById('qrCanvas'),
+              value: data.qr_string,
+              size: 220
+            });
+          } else {
+            alert("Gagal membuat QRIS. Silakan coba lagi.");
+            console.error("Error creating QRIS:", data.error);
+            return;
+          }
+          document.getElementById('priceArea').innerText = "Rp " + price.toLocaleString('id-ID');
           document.getElementById('loading').classList.remove('hidden');
-
           statusChecker = setInterval(checkQrStatus, 4000);
           countdownInterval = setInterval(updateCountdown, 1000);
-        } else {
-          alert("Gagal membuat QRIS. Silakan coba lagi.");
-          console.error("Error creating QRIS:", data.error);
-        }
-      })
-      .catch(err => {
-        console.error("Fetch error:", err);
-        alert("Terjadi kesalahan. Mohon coba lagi.");
-      });
-  };
-
-  function updateCountdown() {
-    remainingTime--;
-    const minutes = Math.floor(remainingTime / 60);
-    const seconds = remainingTime % 60;
-    document.getElementById('timer').innerText = `Lakukan pembayaran dalam ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
-    if (remainingTime <= 0) {
-      clearInterval(statusChecker);
-      clearInterval(countdownInterval);
-      window.location.href = config.homeUrl; // Redirect to home on timeout
+        })
+        .catch(err => {
+          console.error("Fetch error:", err);
+          alert("Terjadi kesalahan. Mohon coba lagi.");
+        });
+    };
+    function updateCountdown() {
+      remainingTime--;
+      const minutes = Math.floor(remainingTime / 60);
+      const seconds = remainingTime % 60;
+      document.getElementById('timer').innerText = `Lakukan pembayaran dalam ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      if (remainingTime <= 0) {
+        clearInterval(statusChecker);
+        clearInterval(countdownInterval);
+        window.location.href = config.homeUrl; // Redirect to home on timeout
+      }
     }
-  }
-
-  function checkQrStatus() {
-    if (!qrId) return;
-    
-    const checkUrl = config.checkQrisUrlTemplate.replace('QR_ID_PLACEHOLDER', qrId);
-    
-    fetch(checkUrl)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "COMPLETED") {
-          clearInterval(statusChecker);
-          clearInterval(countdownInterval);
-          confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-          setTimeout(() => window.location.href = config.statusUrl, 3000);
-        } else if (data.status === "EXPIRED") {
-          clearInterval(statusChecker);
-          clearInterval(countdownInterval);
-          alert("QRIS pembayaran telah kadaluarsa. Silakan ulangi.");
-          window.location.href = config.homeUrl;
+    function checkQrStatus() {
+      if (!qrId) return;
+      console.log("Polling QR status for:", qrId); // DEBUG: show polling in browser console
+      const checkUrl = config.checkQrisUrlTemplate.replace('QR_ID_PLACEHOLDER', qrId);
+      fetch(checkUrl)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          console.log("QR status response:", data); // DEBUG: log response
+          if (!data || !data.status) {
+            console.warn("No status in response", data);
+            return;
+          }
+          const status = String(data.status).toLowerCase();
+          if (status === "payment succeed" || status === "payment_succeed" || status === "success") {
+            clearInterval(statusChecker);
+            clearInterval(countdownInterval);
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+            setTimeout(function() { transitionAndGo(config.statusUrl); }, 1500);
+          } else if (status === "expired") {
+            clearInterval(statusChecker);
+            clearInterval(countdownInterval);
+            alert("QRIS pembayaran telah kadaluarsa. Silakan ulangi.");
+            transitionAndGo(config.homeUrl);
+          } else if (status === "pending") {
+            // Still waiting, do nothing
+          } else {
+            console.warn("Unknown status:", status);
+          }
+        })
+        .catch(function(err) {
+          console.error("Error checking QR status:", err);
+          // Optionally show a message to the user
+          document.getElementById('timer').innerText = 'Gagal cek status pembayaran. Mengulang...';
+        });
+    }
+    // Add transition on navigation (for all links/buttons)
+    function transitionAndGo(url) {
+      const transition = document.getElementById('pageTransition');
+      transition.classList.remove('hide');
+      transition.classList.add('show');
+      setTimeout(() => {
+        window.location.href = url;
+      }, 400);
+    }
+    // Optional: Intercept all anchor clicks for smooth transition
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('a').forEach(function(a) {
+        if (a.target !== '_blank' && a.href && !a.href.startsWith('javascript:')) {
+          a.addEventListener('click', function(e) {
+            e.preventDefault();
+            transitionAndGo(a.href);
+          });
         }
-      })
-      .catch(err => console.error("Error checking QR status:", err));
-  }
-</script>
-
+      });
+    });
+  </script>
 </body>
 </html>

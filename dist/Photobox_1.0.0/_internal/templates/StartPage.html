@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Page</title>
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+        #start-btn {
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start" id="dynamic-bg" style="{% if bg_url %}background: url('{{ bg_url }}') center/cover no-repeat fixed;{% else %}background: linear-gradient(to bottom right, #e0e7ff, #fff);{% endif %}">
+    <div style="height: 66vh;"></div>
+    <button id="start-btn" class="mx-auto block px-12 py-2 bg-white text-black text-2xl font-bold rounded-xl shadow-lg border-2 border-black hover:bg-gray-100 hover:shadow-2xl transition">Start</button>
+    <script>
+        document.getElementById('start-btn').onclick = function() {
+            window.location.href = '/'; // Change to your next page route
+        };
+    </script>
+</body>
+</html>
