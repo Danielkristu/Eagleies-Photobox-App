@@ -1,18 +1,18 @@
 {
   "hosting": {
-    "public": "static",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "**",
+        "source": "/api/**",
         "run": {
-          "serviceId": "photobox",
-          "region": "us-central1"
+          "serviceId": "photobox-backend",
+          "region": "YOUR_REGION"
         }
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
       }
     ]
   }

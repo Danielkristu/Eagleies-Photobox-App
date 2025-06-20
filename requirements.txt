@@ -1,10 +1,9 @@
 Flask
+gunicorn
 flask-cors
 google-cloud-firestore
 python-dotenv
-gunicorn
-requests
-getmac
+waitress
 pyautogui
 pygetwindow
-pywebview
+# Add any other dependencies your app uses below
