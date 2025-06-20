@@ -6,4 +6,5 @@ python-dotenv
 waitress
 pyautogui
 pygetwindow
+flask_wtf
 # Add any other dependencies your app uses below
