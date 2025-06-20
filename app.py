@@ -2,7 +2,6 @@
 import os
 import threading
 import time
-import webview
 import sys
 from functools import wraps
 
@@ -225,18 +224,25 @@ def start_flask():
     waitress.serve(app, host='127.0.0.1', port=5000)
 
 if __name__ == "__main__":
-    # Run Flask in a separate thread so it doesn't block the GUI thread.
-    flask_thread = threading.Thread(target=start_flask, daemon=True)
-    flask_thread.start()
+    # Only use webview if running locally (not in Cloud Run)
+    try:
+        import webview
+        # Run Flask in a separate thread so it doesn't block the GUI thread.
+        flask_thread = threading.Thread(target=start_flask, daemon=True)
+        flask_thread.start()
 
-    # Wait a moment for Flask to start up before opening the window.
-    time.sleep(1)
+        # Wait a moment for Flask to start up before opening the window.
+        time.sleep(1)
 
-    # Create and start the PyWebview desktop window pointing to the Flask server.
-    webview.create_window(
-        "Eagleies Photobox",
-        url="http://127.0.0.1:5000/",
-        width=1280,
-        height=800
-    )
-    webview.start()
+        # Create and start the PyWebview desktop window pointing to the Flask server.
+        webview.create_window(
+            "Eagleies Photobox",
+            url="http://127.0.0.1:5000/",
+            width=1280,
+            height=800
+        )
+        webview.start()
+    except ImportError:
+        # If webview is not available, just run Flask normally (for Cloud Run)
+        port = int(os.environ.get("PORT", 8080))
+        app.run(host="0.0.0.0", port=port)
