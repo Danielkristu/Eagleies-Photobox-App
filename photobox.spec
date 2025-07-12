@@ -68,12 +68,13 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name=f'Photobox_{version}',
+    name=f'ChronoSnap_{version}',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     console=False,
+    onefile=True,
 )
 coll = COLLECT(
     exe,
@@ -83,5 +84,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name=f'Photobox_{version}'
+    name=f'ChronoSnap_{version}'
 )
