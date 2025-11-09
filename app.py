@@ -1,4 +1,3 @@
-# app.py
 import os
 import threading
 import time
@@ -15,39 +14,42 @@ from dotenv import load_dotenv
 from routes import register_routes
 import waitress
 
+import logging
 from routes.auth import auth_bp
 from routes.dashboard import dashboard_bp
 from routes.client import client_bp
 from routes.payment import payment_bp
 from routes.voucher import voucher_bp
+
 # --- Initialization ---
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Load environment variables from a .env file
 load_dotenv()
 
 # Set GOOGLE_APPLICATION_CREDENTIALS for PyInstaller (exe) and normal run
-base_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+if hasattr(sys, '_MEIPASS'):
+    base_dir = sys._MEIPASS
+else:
+    base_dir = os.path.abspath(os.path.dirname(__file__))
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(base_dir, "serviceAccountKey.json")
 
 # Initialize Flask app
 app = Flask(__name__)
-# It's crucial to set a strong, secret key for session security
+
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "a-very-secret-key-that-is-long-and-random")
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevents client-side script access to the cookie
-app.config['SESSION_COOKIE_SECURE'] = False    # Set to True if your app is served over HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-# Set session to last for a week, suitable for a photobooth environment
 app.permanent_session_lifetime = timedelta(days=7) 
 CORS(app)
 app.register_blueprint(payment_bp)
 app.register_blueprint(client_bp)
 app.register_blueprint(voucher_bp)
+
 # --- Firestore Setup ---
-# This uses Application Default Credentials.
-# Ensure the GOOGLE_APPLICATION_CREDENTIALS environment variable is set in your .env file
-# and points to your serviceAccountKey.json file.
-# Example .env file line:
-# GOOGLE_APPLICATION_CREDENTIALS="path/to/your/serviceAccountKey.json"
 try:
     db_fs = firestore.Client()
     print("Successfully connected to Firestore.")
@@ -57,20 +59,16 @@ except Exception as e:
 
 
 # --- Authentication Blueprint ---
-# Organizes login-related routes into a logical group named 'auth'
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route("/sign")
 def sign():
-    """Renders the login page ('signin.html'). If a session already exists,
-    it redirects directly to the main booth page."""
     if 'booth_id' in session:
         return redirect(url_for('start_page'))
     return render_template("signin.html")
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    """Handles the login form submission from the /sign page."""
     if not db_fs:
         flash("Database connection is not available.", "error")
         return redirect(url_for('auth.sign'))
@@ -81,19 +79,15 @@ def login():
         return redirect(url_for('auth.sign'))
 
     try:
-        # This is an efficient 'collection group' query. It searches across all
-        # 'Booths' subcollections in your database for a document with the matching code.
         booths_ref = db_fs.collection_group('Booths').where('boothCode', '==', booth_code).limit(1)
         docs = list(booths_ref.stream())
 
         if docs:
             booth_doc = docs[0]
             booth_id = booth_doc.id
-            # The client ID is the ID of the parent document of the 'Booths' subcollection.
             client_id = booth_doc.reference.parent.parent.id
 
-            # Store the necessary IDs in the session to track the logged-in state.
-            session.permanent = True  # Make the session last for the configured duration.
+            session.permanent = True
             session['client_id'] = client_id
             session['booth_id'] = booth_id
             
@@ -111,15 +105,9 @@ def login():
 
 @auth_bp.route("/")
 def booth():
-    """
-    Displays the main photobooth page after successful login.
-    This route is protected; it redirects to the sign-in page if no session is found.
-    This is the correct place to render your main application page (index.html).
-    """
     if 'booth_id' not in session or 'client_id' not in session:
         flash("You must be logged in to view this page.", "error")
         return redirect(url_for('auth.sign'))
-    # Get the booth_id and client_id from the session to pass to the template
     doc_id = session.get('booth_id')
     client_id = session.get('client_id')
     bg_url = None
@@ -137,12 +125,10 @@ def booth():
 
 @auth_bp.route("/logout")
 def logout():
-    """Clears the session to log the user out and redirects to the sign-in page."""
     session.clear()
     flash("You have been successfully logged out.", "info")
     return redirect(url_for('auth.sign'))
 
-# Register the blueprints with the main Flask app
 app.register_blueprint(auth_bp)
 
 
@@ -150,31 +136,23 @@ app.register_blueprint(auth_bp)
 
 @app.route("/")
 def home():
-    """
-    The main entry point of the app.
-    If accessed without a booth_id, redirect to the access code page.
-    """
-    # If someone tries to access '/', always redirect to access code page
     return redirect(url_for('auth.sign'))
 
 def check_activation(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         booth_id = kwargs.get('booth_id')
-        # Only allow access if booth_id is present and matches session
         if not booth_id or session.get('booth_id') != booth_id:
             flash('Akses tidak diizinkan. Silakan login dengan kode booth yang benar.', 'error')
             return redirect(url_for('auth.sign'))
         return f(*args, **kwargs)
     return decorated_function
 
-# Example usage for index page:
 @app.route('/<booth_id>')
 @check_activation
 def booth_index(booth_id):
     client_id = session.get('client_id')
     bg_url = None
-    # Check if the booth exists in Firestore for this client
     booth_exists = False
     try:
         if client_id and booth_id:
@@ -191,7 +169,6 @@ def booth_index(booth_id):
         return redirect(url_for('auth.sign'))
     return render_template('index.html', doc_id=booth_id, booth_id=booth_id, bg_url=bg_url)
 
-# Update your /start/<booth_id> route to also require activation
 @app.route("/start/<booth_id>")
 @check_activation
 def start_page(booth_id):
@@ -214,35 +191,84 @@ def start_page(booth_id):
     return render_template("StartPage.html", bg_url=bg_url, booth_id=booth_id)
 
 
-# --- Webview and Flask Server ---
-# The following code is for running Flask within a PyWebview desktop window.
+# --- PyQt6 and Flask Server ---
 
 def start_flask():
-    """Function to run the Flask app."""
-    # use_reloader=False is important to prevent issues when running in a thread.
-    # waitress.serve will not show the Flask dev server warning and is production-ready
+    """Function to run the Flask app using waitress."""
     waitress.serve(app, host='127.0.0.1', port=5000)
 
-if __name__ == "__main__":
-    # Only use webview if running locally (not in Cloud Run)
+def run_with_pyqt():
+    """Run the application with PyQt6 GUI."""
     try:
-        import webview
-        # Run Flask in a separate thread so it doesn't block the GUI thread.
+        from PyQt6.QtWidgets import QApplication, QMainWindow
+        from PyQt6.QtWebEngineWidgets import QWebEngineView
+        from PyQt6.QtCore import QUrl, Qt
+        from PyQt6.QtGui import QIcon
+        
+        class PhotoboothWindow(QMainWindow):
+            def __init__(self):
+                super().__init__()
+                self.setWindowTitle("Eagleies Photobox")
+                self.setGeometry(100, 100, 1280, 800)
+                
+                # Create the web view
+                self.browser = QWebEngineView()
+                self.browser.setUrl(QUrl("http://127.0.0.1:5000/"))
+                
+                # Set the web view as the central widget
+                self.setCentralWidget(self.browser)
+                
+                # Optional: Enable developer tools (F12)
+                self.browser.settings().setAttribute(
+                    self.browser.settings().WebAttribute.JavascriptEnabled, True
+                )
+                
+            def closeEvent(self, event):
+                """Handle window close event."""
+                event.accept()
+        
+        # Start Flask in a separate daemon thread
         flask_thread = threading.Thread(target=start_flask, daemon=True)
         flask_thread.start()
+        
+        # Wait for Flask to start
+        time.sleep(1.5)
+        
+        # Create Qt Application
+        qt_app = QApplication(sys.argv)
+        qt_app.setApplicationName("Eagleies Photobox")
+        
+        # Create and show the main window
+        window = PhotoboothWindow()
+        window.show()
+        
+        # Start the Qt event loop
+        sys.exit(qt_app.exec())
+        
+    except ImportError as e:
+        logging.error(f"PyQt6 not available: {e}")
+        logging.info("Please install PyQt6 and PyQt6-WebEngine:")
+        logging.info("  pip install PyQt6 PyQt6-WebEngine")
+        raise
+    except Exception as e:
+        logging.critical(f"Failed to create or start PyQt6 window: {e}")
+        input("Press Enter to exit...")
+        raise
 
-        # Wait a moment for Flask to start up before opening the window.
-        time.sleep(1)
-
-        # Create and start the PyWebview desktop window pointing to the Flask server.
-        webview.create_window(
-            "Eagleies Photobox",
-            url="http://127.0.0.1:5000/",
-            width=1280,
-            height=800
-        )
-        webview.start()
-    except ImportError:
-        # If webview is not available, just run Flask normally (for Cloud Run)
+if __name__ == "__main__":
+    # Check if running in desktop mode or server mode
+    if os.environ.get("RUN_MODE") == "server" or os.environ.get("PORT"):
+        # Server mode (for Cloud Run or production)
         port = int(os.environ.get("PORT", 8080))
         app.run(host="0.0.0.0", port=port)
+    else:
+        # Desktop mode with PyQt6
+        try:
+            run_with_pyqt()
+        except ImportError:
+            logging.warning("PyQt6 not available, falling back to server mode")
+            print("\nTo use desktop mode, install PyQt6:")
+            print("  pip install PyQt6 PyQt6-WebEngine\n")
+            # Fallback to simple Flask server
+            port = int(os.environ.get("PORT", 5000))
+            app.run(host="127.0.0.1", port=port, debug=True)

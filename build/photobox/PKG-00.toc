@@ -1,4 +1,4 @@
-('D:\\Eagleies Creative\\Photobox\\build\\photobox\\ChronoSnap_1.0.7.pkg',
+('D:\\Eagleies Creative\\Photobox\\build\\photobox\\ChronoSnap_1.0.39.pkg',
  {'BINARY': True,
   'DATA': True,
   'EXECUTABLE': True,
@@ -55,9 +55,9 @@
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
    'PYSOURCE'),
-  ('pyi_rth_pkgres',
+  ('pyi_rth_pyqt6',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgres.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pyqt6.py',
    'PYSOURCE'),
   ('pyi_rth__tkinter',
    'D:\\Eagleies '
@@ -65,7 +65,7 @@
    'PYSOURCE'),
   ('app', 'D:\\Eagleies Creative\\Photobox\\app.py', 'PYSOURCE')],
  'python313.dll',
- True,
+ False,
  False,
  False,
  [],

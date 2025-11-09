@@ -23,8 +23,11 @@ datas = [
     ('firebase.json', '.'),
 ]
 
-# Hidden imports for PyWebview and Flask
-hiddenimports = collect_submodules('webview') + collect_submodules('flask')
+# Hidden imports for PyQt6 and Flask
+# We remove 'webview', 'pythonnet', and 'cefpython3'
+hiddenimports = collect_submodules('PyQt6') + collect_submodules('flask')
+# Ensure QtWebEngine and its dependencies are included
+hiddenimports += ['PyQt6.QtWebEngineWidgets', 'PyQt6.QtWebEngineCore', 'PyQt6.QtPrintSupport']
 
 # --- Versioning ---
 def get_next_version(version_file='version.txt'):
@@ -67,7 +70,7 @@ exe = EXE(
     pyz,
     a.scripts,
     [],
-    exclude_binaries=True,
+    exclude_binaries=False,
     name=f'ChronoSnap_{version}',
     debug=False,
     bootloader_ignore_signals=False,

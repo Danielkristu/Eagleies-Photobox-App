@@ -1,7 +1,7 @@
-('D:\\Eagleies Creative\\Photobox\\build\\photobox\\ChronoSnap_1.0.7.exe',
+('D:\\Eagleies Creative\\Photobox\\dist\\ChronoSnap_1.0.39.exe',
  False,
  False,
- True,
+ False,
  'D:\\Eagleies '
  'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\bootloader\\images\\icon-windowed.ico',
  None,
@@ -30,7 +30,7 @@
  None,
  None,
  None,
- 'D:\\Eagleies Creative\\Photobox\\build\\photobox\\ChronoSnap_1.0.7.pkg',
+ 'D:\\Eagleies Creative\\Photobox\\build\\photobox\\ChronoSnap_1.0.39.pkg',
  [('pyi-contents-directory _internal', '', 'OPTION'),
   ('PYZ-00.pyz',
    'D:\\Eagleies Creative\\Photobox\\build\\photobox\\PYZ-00.pyz',
@@ -78,9 +78,9 @@
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
    'PYSOURCE'),
-  ('pyi_rth_pkgres',
+  ('pyi_rth_pyqt6',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgres.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pyqt6.py',
    'PYSOURCE'),
   ('pyi_rth__tkinter',
    'D:\\Eagleies '
@@ -90,7 +90,7 @@
  [],
  False,
  False,
- 1752304248,
+ 1762428670,
  [('runw.exe',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',

@@ -167,10 +167,14 @@ def start_payment_qris(booth_id):
         qr_code = resp_json.get('qr_code') or resp_json.get('qr_string') or resp_json.get('qr_url')
         if qr_id and qr_code:
             # Store mapping qr_id -> reference_id
-            db_fs.collection('QrIdToReference').document(qr_id).set({
-                'reference_id': reference_id,
-                'created': firestore.SERVER_TIMESTAMP,
-            }, merge=True)
+            try:
+                db_fs.collection('QrIdToReference').document(qr_id).set({
+                    'reference_id': reference_id,
+                    'created': firestore.SERVER_TIMESTAMP,
+                }, merge=True)
+                print(f"[QRIS] Mapping write success: qr_id={qr_id}, reference_id={reference_id}")
+            except Exception as e:
+                print(f"[QRIS] Mapping write FAILED: qr_id={qr_id}, reference_id={reference_id}, error: {e}")
             return jsonify({"id": qr_id, "qr_code": qr_code, **resp_json})
         else:
             logging.error(f"[QRIS] Missing QR fields in Xendit response: {resp_json}")
@@ -446,7 +450,7 @@ def run_dslrbooth_session(booth_id):
 
     # Do  open the payment success page or browser tab here. 
     
-    time.sleep(3)  # Wait for a moment to ensure the API call is processed
+    time.sleep(1)  # Wait for a moment to ensure the API call is processed
 
     # Try to minimize the PyWebview window (if any)
     try:

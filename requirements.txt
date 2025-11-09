@@ -7,4 +7,5 @@ waitress
 pyautogui
 pygetwindow
 flask_wtf
+pythonnet
 # Add any other dependencies your app uses below

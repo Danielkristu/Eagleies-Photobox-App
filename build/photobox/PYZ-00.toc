@@ -1,95 +1,131 @@
 ('D:\\Eagleies Creative\\Photobox\\build\\photobox\\PYZ-00.pyz',
- [('PyInstaller',
+ [('PyQt6',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\__init__.py',
    'PYMODULE'),
-  ('PyInstaller._shared_with_waf',
+  ('PyQt6.lupdate',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\_shared_with_waf.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\__init__.py',
    'PYMODULE'),
-  ('PyInstaller.building',
+  ('PyQt6.lupdate.designer_source',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\building\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\designer_source.py',
    'PYMODULE'),
-  ('PyInstaller.building.utils',
+  ('PyQt6.lupdate.lupdate',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\building\\utils.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\lupdate.py',
    'PYMODULE'),
-  ('PyInstaller.compat',
+  ('PyQt6.lupdate.pylupdate',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\compat.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\pylupdate.py',
    'PYMODULE'),
-  ('PyInstaller.config',
+  ('PyQt6.lupdate.python_source',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\config.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\python_source.py',
    'PYMODULE'),
-  ('PyInstaller.depend',
+  ('PyQt6.lupdate.source_file',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\depend\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\source_file.py',
    'PYMODULE'),
-  ('PyInstaller.depend.imphookapi',
+  ('PyQt6.lupdate.translation_file',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\depend\\imphookapi.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\translation_file.py',
    'PYMODULE'),
-  ('PyInstaller.exceptions',
+  ('PyQt6.lupdate.translations',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\exceptions.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\translations.py',
    'PYMODULE'),
-  ('PyInstaller.isolated',
+  ('PyQt6.lupdate.user',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\isolated\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\lupdate\\user.py',
    'PYMODULE'),
-  ('PyInstaller.isolated._parent',
+  ('PyQt6.uic',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\isolated\\_parent.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\__init__.py',
    'PYMODULE'),
-  ('PyInstaller.lib',
+  ('PyQt6.uic.Compiler',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\lib\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Compiler\\__init__.py',
    'PYMODULE'),
-  ('PyInstaller.lib.modulegraph',
+  ('PyQt6.uic.Compiler.as_string',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\lib\\modulegraph\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Compiler\\as_string.py',
    'PYMODULE'),
-  ('PyInstaller.lib.modulegraph.modulegraph',
+  ('PyQt6.uic.Compiler.compiler',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\lib\\modulegraph\\modulegraph.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Compiler\\compiler.py',
    'PYMODULE'),
-  ('PyInstaller.lib.modulegraph.util',
+  ('PyQt6.uic.Compiler.indenter',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\lib\\modulegraph\\util.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Compiler\\indenter.py',
    'PYMODULE'),
-  ('PyInstaller.log',
+  ('PyQt6.uic.Compiler.misc',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\log.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Compiler\\misc.py',
    'PYMODULE'),
-  ('PyInstaller.utils',
+  ('PyQt6.uic.Compiler.proxy_metaclass',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\utils\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Compiler\\proxy_metaclass.py',
    'PYMODULE'),
-  ('PyInstaller.utils.hooks',
+  ('PyQt6.uic.Compiler.qobjectcreator',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\utils\\hooks\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Compiler\\qobjectcreator.py',
    'PYMODULE'),
-  ('PyInstaller.utils.hooks.conda',
+  ('PyQt6.uic.Compiler.qtproxies',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\utils\\hooks\\conda.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Compiler\\qtproxies.py',
    'PYMODULE'),
-  ('PyInstaller.utils.misc',
+  ('PyQt6.uic.Loader',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\utils\\misc.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Loader\\__init__.py',
    'PYMODULE'),
-  ('PyInstaller.utils.osx',
+  ('PyQt6.uic.Loader.loader',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\utils\\osx.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Loader\\loader.py',
    'PYMODULE'),
-  ('PyInstaller.utils.win32',
+  ('PyQt6.uic.Loader.qobjectcreator',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\utils\\win32\\__init__.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\Loader\\qobjectcreator.py',
    'PYMODULE'),
-  ('PyInstaller.utils.win32.versioninfo',
+  ('PyQt6.uic.compile_ui',
    'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\utils\\win32\\versioninfo.py',
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\compile_ui.py',
+   'PYMODULE'),
+  ('PyQt6.uic.enum_map',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\enum_map.py',
+   'PYMODULE'),
+  ('PyQt6.uic.exceptions',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\exceptions.py',
+   'PYMODULE'),
+  ('PyQt6.uic.icon_cache',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\icon_cache.py',
+   'PYMODULE'),
+  ('PyQt6.uic.load_ui',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\load_ui.py',
+   'PYMODULE'),
+  ('PyQt6.uic.objcreator',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\objcreator.py',
+   'PYMODULE'),
+  ('PyQt6.uic.properties',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\properties.py',
+   'PYMODULE'),
+  ('PyQt6.uic.pyuic',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\pyuic.py',
+   'PYMODULE'),
+  ('PyQt6.uic.ui_file',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\ui_file.py',
+   'PYMODULE'),
+  ('PyQt6.uic.uiparser',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyQt6\\uic\\uiparser.py',
    'PYMODULE'),
   ('__future__',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\__future__.py',
@@ -128,6 +164,14 @@
    'PYMODULE'),
   ('_pydecimal',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\_pydecimal.py',
+   'PYMODULE'),
+  ('_pyi_rth_utils',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\fake-modules\\_pyi_rth_utils\\__init__.py',
+   'PYMODULE'),
+  ('_pyi_rth_utils.qt',
+   'D:\\Eagleies '
+   'Creative\\Photobox\\.venv\\Lib\\site-packages\\PyInstaller\\fake-modules\\_pyi_rth_utils\\qt.py',
    'PYMODULE'),
   ('_pyrepl',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\_pyrepl\\__init__.py',
@@ -203,22 +247,6 @@
    'PYMODULE'),
   ('_threading_local',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\_threading_local.py',
-   'PYMODULE'),
-  ('altgraph',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\altgraph\\__init__.py',
-   'PYMODULE'),
-  ('altgraph.Graph',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\altgraph\\Graph.py',
-   'PYMODULE'),
-  ('altgraph.GraphUtil',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\altgraph\\GraphUtil.py',
-   'PYMODULE'),
-  ('altgraph.ObjectGraph',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\altgraph\\ObjectGraph.py',
    'PYMODULE'),
   ('argparse',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\argparse.py',
@@ -346,9 +374,6 @@
   ('blinker.base',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\blinker\\base.py',
-   'PYMODULE'),
-  ('bottle',
-   'D:\\Eagleies Creative\\Photobox\\.venv\\Lib\\site-packages\\bottle.py',
    'PYMODULE'),
   ('bz2',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\bz2.py',
@@ -530,69 +555,6 @@
   ('click.utils',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\click\\utils.py',
-   'PYMODULE'),
-  ('clr',
-   'D:\\Eagleies Creative\\Photobox\\.venv\\Lib\\site-packages\\clr.py',
-   'PYMODULE'),
-  ('clr_loader',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\__init__.py',
-   'PYMODULE'),
-  ('clr_loader.ffi',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\ffi\\__init__.py',
-   'PYMODULE'),
-  ('clr_loader.ffi.hostfxr',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\ffi\\hostfxr.py',
-   'PYMODULE'),
-  ('clr_loader.ffi.mono',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\ffi\\mono.py',
-   'PYMODULE'),
-  ('clr_loader.ffi.netfx',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\ffi\\netfx.py',
-   'PYMODULE'),
-  ('clr_loader.hostfxr',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\hostfxr.py',
-   'PYMODULE'),
-  ('clr_loader.mono',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\mono.py',
-   'PYMODULE'),
-  ('clr_loader.netfx',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\netfx.py',
-   'PYMODULE'),
-  ('clr_loader.types',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\types.py',
-   'PYMODULE'),
-  ('clr_loader.util',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\util\\__init__.py',
-   'PYMODULE'),
-  ('clr_loader.util.clr_error',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\util\\clr_error.py',
-   'PYMODULE'),
-  ('clr_loader.util.coreclr_errors',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\util\\coreclr_errors.py',
-   'PYMODULE'),
-  ('clr_loader.util.find',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\util\\find.py',
-   'PYMODULE'),
-  ('clr_loader.util.hostfxr_errors',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\util\\hostfxr_errors.py',
-   'PYMODULE'),
-  ('clr_loader.util.runtime_spec',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\clr_loader\\util\\runtime_spec.py',
    'PYMODULE'),
   ('cmd',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\cmd.py',
@@ -2102,58 +2064,6 @@
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\grpc_status\\rpc_status.py',
    'PYMODULE'),
-  ('gunicorn',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\__init__.py',
-   'PYMODULE'),
-  ('gunicorn.app',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\app\\__init__.py',
-   'PYMODULE'),
-  ('gunicorn.app.base',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\app\\base.py',
-   'PYMODULE'),
-  ('gunicorn.arbiter',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\arbiter.py',
-   'PYMODULE'),
-  ('gunicorn.config',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\config.py',
-   'PYMODULE'),
-  ('gunicorn.debug',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\debug.py',
-   'PYMODULE'),
-  ('gunicorn.errors',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\errors.py',
-   'PYMODULE'),
-  ('gunicorn.pidfile',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\pidfile.py',
-   'PYMODULE'),
-  ('gunicorn.reloader',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\reloader.py',
-   'PYMODULE'),
-  ('gunicorn.sock',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\sock.py',
-   'PYMODULE'),
-  ('gunicorn.systemd',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\systemd.py',
-   'PYMODULE'),
-  ('gunicorn.util',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\util.py',
-   'PYMODULE'),
-  ('gunicorn.workers',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\gunicorn\\workers\\__init__.py',
-   'PYMODULE'),
   ('gzip',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\gzip.py',
    'PYMODULE'),
@@ -2520,18 +2430,6 @@
   ('optparse',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\optparse.py',
    'PYMODULE'),
-  ('ordlookup',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\ordlookup\\__init__.py',
-   'PYMODULE'),
-  ('ordlookup.oleaut32',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\ordlookup\\oleaut32.py',
-   'PYMODULE'),
-  ('ordlookup.ws2_32',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\ordlookup\\ws2_32.py',
-   'PYMODULE'),
   ('packaging',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\packaging\\__init__.py',
@@ -2572,10 +2470,6 @@
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\packaging\\markers.py',
    'PYMODULE'),
-  ('packaging.metadata',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\packaging\\metadata.py',
-   'PYMODULE'),
   ('packaging.requirements',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\packaging\\requirements.py',
@@ -2608,24 +2502,14 @@
   ('pdb',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pdb.py',
    'PYMODULE'),
-  ('pefile',
-   'D:\\Eagleies Creative\\Photobox\\.venv\\Lib\\site-packages\\pefile.py',
-   'PYMODULE'),
   ('pickle',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pickle.py',
-   'PYMODULE'),
-  ('pkg_resources',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\pkg_resources\\__init__.py',
    'PYMODULE'),
   ('pkgutil',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pkgutil.py',
    'PYMODULE'),
   ('platform',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\platform.py',
-   'PYMODULE'),
-  ('plistlib',
-   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\plistlib.py',
    'PYMODULE'),
   ('pprint',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pprint.py',
@@ -2736,10 +2620,6 @@
   ('proto.version',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\proto\\version.py',
-   'PYMODULE'),
-  ('proxy_tools',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\proxy_tools\\__init__.py',
    'PYMODULE'),
   ('pstats',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\pstats.py',
@@ -2983,10 +2863,6 @@
   ('pyscreeze',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\pyscreeze\\__init__.py',
-   'PYMODULE'),
-  ('pythonnet',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\pythonnet\\__init__.py',
    'PYMODULE'),
   ('pytweening',
    'D:\\Eagleies '
@@ -3459,34 +3335,6 @@
   ('setuptools._vendor.packaging.version',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\version.py',
-   'PYMODULE'),
-  ('setuptools._vendor.platformdirs',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\platformdirs\\__init__.py',
-   'PYMODULE'),
-  ('setuptools._vendor.platformdirs.android',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\platformdirs\\android.py',
-   'PYMODULE'),
-  ('setuptools._vendor.platformdirs.api',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\platformdirs\\api.py',
-   'PYMODULE'),
-  ('setuptools._vendor.platformdirs.macos',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\platformdirs\\macos.py',
-   'PYMODULE'),
-  ('setuptools._vendor.platformdirs.unix',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\platformdirs\\unix.py',
-   'PYMODULE'),
-  ('setuptools._vendor.platformdirs.version',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\platformdirs\\version.py',
-   'PYMODULE'),
-  ('setuptools._vendor.platformdirs.windows',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\platformdirs\\windows.py',
    'PYMODULE'),
   ('setuptools._vendor.tomli',
    'D:\\Eagleies '
@@ -4124,118 +3972,6 @@
   ('webbrowser',
    'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\webbrowser.py',
    'PYMODULE'),
-  ('webview',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\__init__.py',
-   'PYMODULE'),
-  ('webview.__pyinstaller',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\__pyinstaller\\__init__.py',
-   'PYMODULE'),
-  ('webview.__pyinstaller.hook-webview',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\__pyinstaller\\hook-webview.py',
-   'PYMODULE'),
-  ('webview._version',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\_version.py',
-   'PYMODULE'),
-  ('webview.dom',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\dom\\__init__.py',
-   'PYMODULE'),
-  ('webview.dom.classlist',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\dom\\classlist.py',
-   'PYMODULE'),
-  ('webview.dom.dom',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\dom\\dom.py',
-   'PYMODULE'),
-  ('webview.dom.element',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\dom\\element.py',
-   'PYMODULE'),
-  ('webview.dom.event',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\dom\\event.py',
-   'PYMODULE'),
-  ('webview.dom.propsdict',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\dom\\propsdict.py',
-   'PYMODULE'),
-  ('webview.errors',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\errors.py',
-   'PYMODULE'),
-  ('webview.event',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\event.py',
-   'PYMODULE'),
-  ('webview.guilib',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\guilib.py',
-   'PYMODULE'),
-  ('webview.http',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\http.py',
-   'PYMODULE'),
-  ('webview.localization',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\localization.py',
-   'PYMODULE'),
-  ('webview.menu',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\menu.py',
-   'PYMODULE'),
-  ('webview.platforms',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\__init__.py',
-   'PYMODULE'),
-  ('webview.platforms.android',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\android.py',
-   'PYMODULE'),
-  ('webview.platforms.cef',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\cef.py',
-   'PYMODULE'),
-  ('webview.platforms.cocoa',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\cocoa.py',
-   'PYMODULE'),
-  ('webview.platforms.edgechromium',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\edgechromium.py',
-   'PYMODULE'),
-  ('webview.platforms.gtk',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\gtk.py',
-   'PYMODULE'),
-  ('webview.platforms.mshtml',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\mshtml.py',
-   'PYMODULE'),
-  ('webview.platforms.qt',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\qt.py',
-   'PYMODULE'),
-  ('webview.platforms.winforms',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\platforms\\winforms.py',
-   'PYMODULE'),
-  ('webview.screen',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\screen.py',
-   'PYMODULE'),
-  ('webview.util',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\util.py',
-   'PYMODULE'),
-  ('webview.window',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\webview\\window.py',
-   'PYMODULE'),
   ('werkzeug',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\werkzeug\\__init__.py',
@@ -4423,132 +4159,6 @@
   ('win32con',
    'D:\\Eagleies '
    'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32\\lib\\win32con.py',
-   'PYMODULE'),
-  ('win32ctypes',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\__init__.py',
-   'PYMODULE'),
-  ('win32ctypes.core',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\__init__.py',
-   'PYMODULE'),
-  ('win32ctypes.core._winerrors',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\_winerrors.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\__init__.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi._authentication',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\_authentication.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi._common',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\_common.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi._dll',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\_dll.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi._nl_support',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\_nl_support.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi._resource',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\_resource.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi._system_information',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\_system_information.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi._time',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\_time.py',
-   'PYMODULE'),
-  ('win32ctypes.core.cffi._util',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\cffi\\_util.py',
-   'PYMODULE'),
-  ('win32ctypes.core.compat',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\compat.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\__init__.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes._authentication',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\_authentication.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes._common',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\_common.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes._dll',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\_dll.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes._nl_support',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\_nl_support.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes._resource',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\_resource.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes._system_information',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\_system_information.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes._time',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\_time.py',
-   'PYMODULE'),
-  ('win32ctypes.core.ctypes._util',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\core\\ctypes\\_util.py',
-   'PYMODULE'),
-  ('win32ctypes.pywin32',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\pywin32\\__init__.py',
-   'PYMODULE'),
-  ('win32ctypes.pywin32.pywintypes',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\pywin32\\pywintypes.py',
-   'PYMODULE'),
-  ('win32ctypes.pywin32.win32api',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\pywin32\\win32api.py',
-   'PYMODULE'),
-  ('win32ctypes.pywin32.win32cred',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\pywin32\\win32cred.py',
-   'PYMODULE'),
-  ('win32ctypes.version',
-   'D:\\Eagleies '
-   'Creative\\Photobox\\.venv\\Lib\\site-packages\\win32ctypes\\version.py',
-   'PYMODULE'),
-  ('wsgiref',
-   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\wsgiref\\__init__.py',
-   'PYMODULE'),
-  ('wsgiref.handlers',
-   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\wsgiref\\handlers.py',
-   'PYMODULE'),
-  ('wsgiref.headers',
-   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\wsgiref\\headers.py',
-   'PYMODULE'),
-  ('wsgiref.simple_server',
-   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\wsgiref\\simple_server.py',
-   'PYMODULE'),
-  ('wsgiref.types',
-   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\wsgiref\\types.py',
-   'PYMODULE'),
-  ('wsgiref.util',
-   'C:\\Users\\danie\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\wsgiref\\util.py',
    'PYMODULE'),
   ('wtforms',
    'D:\\Eagleies '
